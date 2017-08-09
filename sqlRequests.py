@@ -1,6 +1,5 @@
 import sqlite3
 import logging
-import httpRequests
 
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.ERROR, filename = u'log.txt')
 _DB_PATH = "h&m.sqlite"
@@ -12,21 +11,62 @@ def saveThings(results):
         cursor = conn.cursor()
         for i in range(len(results)):
             thing = results[i]
-
-            print(str(i)+"INSERT INTO result VALUES (\'"
-                  +thing["defaultCode_string"]+"\',"
-                  +str(thing["productWhitePrice_rub_double"])+","
-                  +str(thing["actualPrice_rub_double"])+",\'"
-                  +thing["name_text_ru"]+"\')")
             cursor.execute("INSERT INTO result VALUES (\""
-                  +thing["defaultCode_string"]+"\","
+                  +str(thing["defaultCode_string"])+"\","
                   +str(thing["productWhitePrice_rub_double"])+","
                   +str(thing["actualPrice_rub_double"])+",\""
-                  +thing["name_text_ru"]+"\")")
+                  +str(thing["name_text_ru"])+"\",\""
+                  +str(thing["sizes_ru_string_mv"]) + "\")")
         conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
+
+def addNewThings(new_things):
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        for i in range(len(new_things)):
+            thing = new_things[i]
+            cursor.execute("INSERT INTO result VALUES (\""
+                  + str(thing[0]) + "\","
+                  + str(thing[1]) + ","
+                  + str(thing[2]) + ",\""
+                  + str(thing[3]) + "\",\""
+                  + str(thing[4]) + "\")")
+        conn.commit()
+        conn.close()
+    except sqlite3.DatabaseError as err:
+        print("Error: ", err)
+
+def deleteNotActualThings(not_actual_things):
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        for i in range(len(not_actual_things)):
+            thing = not_actual_things[i]
+            print("DELETE FROM result WHERE defaultCode_string = \""+str(thing[0])+"\"")
+            cursor.execute("DELETE FROM result WHERE defaultCode_string = \""+str(thing[0])+"\"")
+        conn.commit()
+        conn.close()
+    except sqlite3.DatabaseError as err:
+        print("Error: ", err)
+
+def getThings():
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT() FROM result")
+        count = cursor.fetchone()[0]
+        things = []
+        cursor.execute("SELECT defaultCode_string FROM result")
+        for i in range(count):
+            things.append(cursor.fetchone()[0])
+        conn.close()
+        return things
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')
+
 
 def getHeaders(company):
     try:

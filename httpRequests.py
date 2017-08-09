@@ -33,7 +33,6 @@ def getThings():
         while True:
             req = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=men_all&start=' + str(
                 startIndex) + '&pageSize=30&sale_boolean=true'
-            print(startIndex)
             response = requests.get(req, headers=headers, cookies=cookies)
             if (response.status_code == 200):
                 cookies.update(dict(response.cookies)) #Обновляем куки
@@ -47,7 +46,7 @@ def getThings():
                 results.extend(parsed_string["results"])
                 print("item: "+str(startIndex)+"  "+str(len(results)))
                 startIndex += 30
-                time.sleep(1)
+                #time.sleep(1)
                 failCounter = 0
             else:
                 if (response.status_code == 403 and failCounter < 5):
