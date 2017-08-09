@@ -46,7 +46,6 @@ def getThings():
                 results.extend(parsed_string["results"])
                 print("item: "+str(startIndex)+"  "+str(len(results)))
                 startIndex += 30
-                #time.sleep(1)
                 failCounter = 0
             else:
                 if (response.status_code == 403 and failCounter < 5):

@@ -56,14 +56,11 @@ def getThings():
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT() FROM result")
-        count = cursor.fetchone()[0]
-        things = []
         cursor.execute("SELECT defaultCode_string FROM result")
-        for i in range(count):
-            things.append(cursor.fetchone()[0])
+        things = cursor.fetchall()
+        result = [x[0] for x in things]
         conn.close()
-        return things
+        return result
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
