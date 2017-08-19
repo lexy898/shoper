@@ -1,13 +1,9 @@
-from time import sleep
-
 import httpRequests
 import sqlRequests
-import telegramBot
+import notifier
 
 def thingsUpdate():
     old_things = sqlRequests.getThings()
-    print("Шмот из таблицы "+str(old_things))
-
     loaded_results = httpRequests.getThings()
     loaded_things = []
     loaded_things_codes = []
@@ -34,4 +30,4 @@ def thingsUpdate():
 
 new_things = thingsUpdate()
 if len(new_things) != 0:
-    telegramBot.sendMessage(new_things)
+    notifier.sendMessage(new_things)

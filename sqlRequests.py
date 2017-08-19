@@ -114,3 +114,15 @@ def convertToDict(obj):
     except:
         import sys
         logging.error(u'Error converting to dictionary. Module: '+str(sys.modules[__name__])+'')
+
+def getBrands():
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT company_name FROM company")
+        brands = cursor.fetchall()
+        result = [x[0] for x in brands]
+        conn.close()
+        return result
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')
