@@ -6,6 +6,7 @@ _DB_PATH = "h&m.sqlite"
 
 
 def saveThings(results):
+    default = "-"
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -16,12 +17,11 @@ def saveThings(results):
                   +str(thing["productWhitePrice_rub_double"])+","
                   +str(thing["actualPrice_rub_double"])+",\""
                   +str(thing["name_text_ru"])+"\",\""
-                  +str(thing["sizes_ru_string_mv"]) + "\")")
+                  +str(thing.get("sizes_ru_string_mv",default)) + "\")")
         conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
-
 def addNewThings(new_things):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -115,11 +115,25 @@ def convertToDict(obj):
         import sys
         logging.error(u'Error converting to dictionary. Module: '+str(sys.modules[__name__])+'')
 
-def getBrands():
+def getBrands(): #Возвращает бренды в виде словаря {id:brand}
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT id, company_name FROM company")
+        brands = cursor.fetchall()
+        result = {}
+        for i in range(len(brands)):
+            result[brands[i][0]] = brands[i][1]
+        conn.close()
+        return result
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')
+
+def getBrandsInvert(): #Возвращает те же пары, что и getBrands(), но ключ и значение поменяны местами
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT company_name, id FROM company")
         brands = cursor.fetchall()
         result = {}
         for i in range(len(brands)):
@@ -285,5 +299,18 @@ def setFlagByUser(chatid, company):
                         "AND company = (SELECT id FROM company WHERE company_name = '"+company+"')")
         conn.commit()
         conn.close()
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')
+
+def getSubscribers(brand, typeOfGood): #Получить подписчиков по бренду и типу товара
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT chatid FROM compilance_user_prod "
+                       "WHERE company = '"+str(brand)+"' AND type_of_good = '"+str(typeOfGood)+"'")
+        subscribers = cursor.fetchall()
+        conn.close()
+        result = [x[0] for x in subscribers]
+        return result
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')

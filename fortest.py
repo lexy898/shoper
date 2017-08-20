@@ -1,4 +1,5 @@
-import httpRequests
+import parserHnM
 import sqlRequests
 
-sqlRequests.saveThings(httpRequests.getThings())
+things = parserHnM.getHOME()
+sqlRequests.saveThings(things)

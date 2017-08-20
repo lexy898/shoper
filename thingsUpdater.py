@@ -1,10 +1,22 @@
-import httpRequests
+import parserHnM
 import sqlRequests
 import notifier
 
-def thingsUpdate():
+HnMupd = True
+
+def thingsUpdateHnM(type):
     old_things = sqlRequests.getThings()
-    loaded_results = httpRequests.getThings()
+    if type == 'male':
+        loaded_results = parserHnM.getMale()
+    elif type == 'female':
+        loaded_results = parserHnM.getFemale()
+    elif type == 'childrens':
+        loaded_results = parserHnM.getChildrens()
+    elif type == 'HOME':
+        loaded_results = parserHnM.getHOME()
+    else:
+        print("Параметра "+str(type)+" не существует")
+        return []
     loaded_things = []
     loaded_things_codes = []
     for i in range(len(loaded_results)):
@@ -12,7 +24,7 @@ def thingsUpdate():
                   loaded_results[i]["productWhitePrice_rub_double"],
                   loaded_results[i]["actualPrice_rub_double"],
                   loaded_results[i]["name_text_ru"],
-                  loaded_results[i]["sizes_ru_string_mv"],)
+                  loaded_results[i].get("sizes_ru_string_mv","-"),)
         loaded_things.append(result)
         loaded_things_codes.append(result[0])
     print("Старые вещи: "+ str(len(old_things))+" шт.")
@@ -28,6 +40,13 @@ def thingsUpdate():
     return new_things
 
 
-new_things = thingsUpdate()
-if len(new_things) != 0:
-    notifier.sendMessage(new_things)
+if HnMupd:
+    def notify(new_things, type):
+        print("Type: "+type+", Рамер:"+str(len(new_things)))
+        if len(new_things) != 0:
+            notifier.sendMessageHnM(new_things, type)
+    types = ['male','female','childrens','HOME']
+    for i in range(len(types)):
+        new_things = thingsUpdateHnM(types[i])
+        notify(new_things, types[i])
+

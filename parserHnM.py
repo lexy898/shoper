@@ -7,6 +7,11 @@ import sqlRequests
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
 company = 'h&m'
 
+femaleUrl ='https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=ladies_all&start='
+maleUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=men_all&start='
+childrensUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=kids_all&start='
+homeUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=home_all&start='
+endOfUrl = '&pageSize=30&sale_boolean=true'
 '''
 try:
     import http.client as http_client
@@ -23,7 +28,7 @@ requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
 '''
 
-def getThings():
+def getThings(url, endOfUrl):
     startIndex = 0
     failCounter = 0
     results = []
@@ -31,8 +36,7 @@ def getThings():
     cookies = sqlRequests.getCookies(company)
     try:
         while True:
-            req = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=men_all&start=' + str(
-                startIndex) + '&pageSize=30&sale_boolean=true'
+            req = url + str(startIndex) + endOfUrl
             response = requests.get(req, headers=headers, cookies=cookies)
             if (response.status_code == 200):
                 cookies.update(dict(response.cookies)) #Обновляем куки
@@ -63,3 +67,15 @@ def getThings():
         logging.error(u'' + str(err) + '')
     except requests.exceptions.HTTPError as err:
         logging.error(u'' + str(err) + '')
+
+def getFemale():
+    return getThings(femaleUrl, endOfUrl)
+
+def getMale():
+    return getThings(maleUrl, endOfUrl)
+
+def getChildrens():
+    return getThings(childrensUrl, endOfUrl)
+
+def getHOME():
+    return getThings(homeUrl, endOfUrl)
