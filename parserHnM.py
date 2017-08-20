@@ -12,6 +12,7 @@ maleUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-
 childrensUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=kids_all&start='
 homeUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=home_all&start='
 endOfUrl = '&pageSize=30&sale_boolean=true'
+thingByIdUrl = 'https://app2.hm.com/hmwebservices/service/article/get-article-by-code/hm-russia/Online/'
 '''
 try:
     import http.client as http_client
@@ -60,6 +61,37 @@ def getThings(url, endOfUrl):
                     break
         sqlRequests.setCookies(company, str(cookies)) #Сохраняем обновленные куки в БД
         return results
+
+    except requests.exceptions.ConnectTimeout as err:
+        logging.error(u'' + str(err) + '')
+    except requests.exceptions.ConnectionError as err:
+        logging.error(u'' + str(err) + '')
+    except requests.exceptions.HTTPError as err:
+        logging.error(u'' + str(err) + '')
+
+def getThingStatusById(id):
+    headers = sqlRequests.getHeaders(company)
+    cookies = sqlRequests.getCookies(company)
+    try:
+        req = thingByIdUrl + str(id) + "/ru"
+        response = requests.get(req, headers=headers, cookies=cookies)
+        if (response.status_code == 200):
+            cookies.update(dict(response.cookies))  # Обновляем куки
+            json_string = response.content
+            try:
+                parsed_string = json.loads(json_string)
+                if (parsed_string["product"] == []):
+                    return False
+            except ValueError as err:
+                logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
+            product = parsed_string["product"]
+            inStock = product.get("inStock","False")
+            print("id: "+str(id)+" inStock: "+str(inStock))
+            if inStock:
+                return True
+            else:
+                return False
+            sqlRequests.setCookies(company, str(cookies))  # Сохраняем обновленные куки в БД
 
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')

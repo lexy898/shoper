@@ -22,6 +22,7 @@ def saveThings(results):
         conn.close()
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
+
 def addNewThings(new_things):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -39,14 +40,11 @@ def addNewThings(new_things):
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
 
-def deleteNotActualThings(not_actual_things):
+def deleteThingById(id):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
-        for i in range(len(not_actual_things)):
-            thing = not_actual_things[i]
-            print("DELETE FROM result WHERE defaultCode_string = \""+str(thing[0])+"\"")
-            cursor.execute("DELETE FROM result WHERE defaultCode_string = \""+str(thing[0])+"\"")
+        cursor.execute("DELETE FROM result WHERE defaultCode_string = \""+str(id)+"\"")
         conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
