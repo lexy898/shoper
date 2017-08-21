@@ -9,7 +9,7 @@ def actualThingsHnM():
         if parserHnM.getThingStatusById(things[i]) == False:
             sqlRequests.deleteThingById(things[i])
             counter +=1
-        time.sleep(1)
+        #time.sleep(1)
     print("Удалено "+str(counter)+" Вещей")
 
 actualThingsHnM()
