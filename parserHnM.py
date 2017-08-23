@@ -95,10 +95,13 @@ def getThingStatusById(id):
 
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
+        return False
     except requests.exceptions.ConnectionError as err:
         logging.error(u'' + str(err) + '')
+        return False
     except requests.exceptions.HTTPError as err:
         logging.error(u'' + str(err) + '')
+        return False
 
 def getFemale():
     return getThings(femaleUrl, endOfUrl)

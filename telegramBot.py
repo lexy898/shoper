@@ -17,7 +17,7 @@ def setHomeScreen(message):
     markup = types.ReplyKeyboardMarkup()
     markup.row('Мои подписки', 'Бренды')
     markup.row('🚫')
-    bot.send_message(message.chat.id, "🖖", reply_markup=markup)
+    bot.send_message(message.chat.id, "😌Выбирай:", reply_markup=markup)
 
 def setBrandSettingsScreen(message):
     typesOfGoodByCompany = sqlRequests.getTypesOfGoodByCompany(message.text)
@@ -29,7 +29,7 @@ def setBrandSettingsScreen(message):
     for i in range(len(typesOfGoodByUser)):
         markup.row("❌Отписаться от " + typesOfgood[typesOfGoodByUser[i]])
     markup.row("🏠")
-    bot.send_message(message.chat.id, "Choose:", reply_markup=markup)
+    bot.send_message(message.chat.id, "😌Выбирай:", reply_markup=markup)
 
 def refreshBrandSettingsScreen(message):
     try:
@@ -43,7 +43,7 @@ def refreshBrandSettingsScreen(message):
         for i in range(len(typesOfGoodByUser)):
             markup.row("❌Отписаться от " + typesOfgood[typesOfGoodByUser[i]])
         markup.row("🏠")
-        bot.send_message(message.chat.id, "Choose:", reply_markup=markup)
+        bot.send_message(message.chat.id, "😌Выбирай:", reply_markup=markup)
     except:
         setHomeScreen(message)
 
@@ -57,7 +57,7 @@ def setBrandsScreen(message):
     for i in range(len(usersBrands)):
         markup.row("❌Отписаться от " + brands[usersBrands[i]])
     markup.row("🏠")
-    bot.send_message(message.chat.id, "Choose one brand:", reply_markup=markup)
+    bot.send_message(message.chat.id, "😌Выбирай бренд:", reply_markup=markup)
 
 def setMySubscriptionsScreen(message):
     sqlRequests.resetFlagByUser(message.chat.id)  # сброс флага текущего бренда у пользователя
@@ -66,7 +66,7 @@ def setMySubscriptionsScreen(message):
     for i in range(len(subscriptions)):
         markup.row(subscriptions[i])
     markup.row("🏠")
-    bot.send_message(message.chat.id, "Your subscriptions:", reply_markup=markup)
+    bot.send_message(message.chat.id, "☑️Твои подписки:", reply_markup=markup)
 
 def subscribe(message):
     key = message.text[16:]
