@@ -33,6 +33,12 @@ def addNewThings(new_things):
                   + str(thing[0]) + "\","
                   + str(thing[1]) + ","
                   + str(thing[2]) + ",\""
+                  + str(thing[3]).replace('"','') + "\",\""
+                  + str(thing[4]) + "\")")
+            print("INSERT INTO result VALUES (\""
+                  + str(thing[0]) + "\","
+                  + str(thing[1]) + ","
+                  + str(thing[2]) + ",\""
                   + str(thing[3]) + "\",\""
                   + str(thing[4]) + "\")")
         conn.commit()
@@ -259,8 +265,8 @@ def delSubscribeTypeOfGoods(chatid, typeOfGood):
         cursor = conn.cursor()
         cursor.execute("DELETE FROM  compilance_user_prod WHERE "
                        "chatid = '"+str(chatid)+"' AND type_of_good = "
-                                           "(SELECT id FROM type_of_goods "
-                                             "WHERE description = '"+str(typeOfGood)+"')")
+                       "(SELECT id FROM type_of_goods "
+                       "WHERE description = '"+str(typeOfGood)+"') AND flag = 1")
         conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
