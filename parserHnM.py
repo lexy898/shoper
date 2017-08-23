@@ -64,6 +64,8 @@ def getThings(url, endOfUrl):
 
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
+    except requests.exceptions.ReadTimeout as err:
+        logging.error(u'' + str(err) + '')
     except requests.exceptions.ConnectionError as err:
         logging.error(u'' + str(err) + '')
     except requests.exceptions.HTTPError as err:
@@ -74,7 +76,7 @@ def getThingStatusById(id):
     cookies = sqlRequests.getCookies(company)
     try:
         req = thingByIdUrl + str(id) + "/ru"
-        response = requests.get(req, headers=headers, cookies=cookies)
+        response = requests.get(req, headers=headers, cookies=cookies, timeout = 15.0)
         if (response.status_code == 200):
             cookies.update(dict(response.cookies))  # Обновляем куки
             json_string = response.content
@@ -94,6 +96,9 @@ def getThingStatusById(id):
             sqlRequests.setCookies(company, str(cookies))  # Сохраняем обновленные куки в БД
 
     except requests.exceptions.ConnectTimeout as err:
+        logging.error(u'' + str(err) + '')
+        return False
+    except requests.exceptions.ReadTimeout as err:
         logging.error(u'' + str(err) + '')
         return False
     except requests.exceptions.ConnectionError as err:
