@@ -79,5 +79,5 @@ if HnMupd:
     types = ['male','female','childrens','HOME']
     for i in range(len(types)):
         new_things = thingsUpdateHnM(types[i])
-        notify(new_things, types[i])
+        #notify(new_things, types[i])
 

@@ -1,2 +1,2 @@
-cd C:\Users\kakni\OneDrive\PyProjects\Shoper
+cd C:\Users\kakni\OneDrive\PyProjects\ShoperSTABLE
 python thingsUpdater.py
