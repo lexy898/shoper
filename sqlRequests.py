@@ -1,5 +1,6 @@
 import sqlite3
 import logging
+from datetime import datetime
 
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.ERROR, filename = u'log.txt')
 _DB_PATH = "h&m.sqlite"
@@ -16,8 +17,9 @@ def saveThings(results):
                   +str(thing["defaultCode_string"])+"\","
                   +str(thing["productWhitePrice_rub_double"])+","
                   +str(thing["actualPrice_rub_double"])+",\""
-                  +str(thing["name_text_ru"])+"\",\""
-                  +str(thing.get("sizes_ru_string_mv",default)) + "\")")
+                  +str(thing["name_text_ru"]).replace('"','')+"\",\""
+                  +str(thing.get("sizes_ru_string_mv",default)) + "\", \""
+                  +datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")+"\")")
         conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
@@ -33,14 +35,16 @@ def addNewThings(new_things):
                   + str(thing[0]) + "\","
                   + str(thing[1]) + ","
                   + str(thing[2]) + ",\""
-                  + str(thing[3]).replace('"','') + "\",\""
-                  + str(thing[4]) + "\")")
+                  + str(thing[3]) + "\",\""
+                  + str(thing[4]) + "\", \""
+                  +datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")+"\")")
             print("INSERT INTO result VALUES (\""
                   + str(thing[0]) + "\","
                   + str(thing[1]) + ","
                   + str(thing[2]) + ",\""
                   + str(thing[3]) + "\",\""
-                  + str(thing[4]) + "\")")
+                  + str(thing[4]) + "\", \""
+                  +datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")+"\")")
         conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
@@ -60,9 +64,8 @@ def getThings():
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("SELECT defaultCode_string FROM result")
-        things = cursor.fetchall()
-        result = [x[0] for x in things]
+        cursor.execute("SELECT defaultCode_string, date FROM result")
+        result = cursor.fetchall()
         conn.close()
         return result
     except sqlite3.DatabaseError as err:
