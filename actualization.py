@@ -3,7 +3,8 @@ from datetime import datetime
 import sqlRequests
 
 def actualThingsHnM():
-    things = sqlRequests.getThings()
+    things = sqlRequests.getThingsWithDate()
+    print("sfef")
     counter = 0
     now = datetime.now()
     for i in range(len(things)):

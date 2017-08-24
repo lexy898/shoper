@@ -64,6 +64,18 @@ def getThings():
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
+        cursor.execute("SELECT defaultCode_string FROM result")
+        things = cursor.fetchall()
+        result = [x[0] for x in things]
+        conn.close()
+        return result
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')
+
+def getThingsWithDate():
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
         cursor.execute("SELECT defaultCode_string, date FROM result")
         result = cursor.fetchall()
         conn.close()
