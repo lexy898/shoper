@@ -60,7 +60,6 @@ def getThings(url, endOfUrl):
                 else:
                     break
         sqlRequests.setCookies(company, str(cookies)) #Сохраняем обновленные куки в БД
-        return results
 
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
@@ -70,13 +69,14 @@ def getThings(url, endOfUrl):
         logging.error(u'' + str(err) + '')
     except requests.exceptions.HTTPError as err:
         logging.error(u'' + str(err) + '')
+    return results
 
 def getThingStatusById(id):
     headers = sqlRequests.getHeaders(company)
     cookies = sqlRequests.getCookies(company)
     try:
         req = thingByIdUrl + str(id) + "/ru"
-        response = requests.get(req, headers=headers, cookies=cookies, timeout = 5.0)
+        response = requests.get(req, headers=headers, cookies=cookies, timeout = 15.0)
         if (response.status_code == 200):
             cookies.update(dict(response.cookies))  # Обновляем куки
             json_string = response.content

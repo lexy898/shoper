@@ -1,8 +1,10 @@
 import parserHnM
 import sqlRequests
 import notifier
+from datetime import datetime
 
 HnMupd = True
+roxy = True
 
 def thingsUpdateHnM(type):
     old_things = sqlRequests.getThings()
@@ -20,19 +22,23 @@ def thingsUpdateHnM(type):
     loaded_things = []
     loaded_things_codes = []
     for i in range(len(loaded_results)):
-        result = (loaded_results[i]["defaultCode_string"],
+        result = [loaded_results[i]["defaultCode_string"],
                   loaded_results[i]["productWhitePrice_rub_double"],
                   loaded_results[i]["actualPrice_rub_double"],
                   loaded_results[i]["name_text_ru"],
-                  loaded_results[i].get("sizes_ru_string_mv","-"),)
+                  loaded_results[i].get("sizes_ru_string_mv","-"),]
         loaded_things.append(result)
         loaded_things_codes.append(result[0])
     print("Старые вещи: "+ str(len(old_things))+" шт.")
+    writeProtocol(str(datetime.now())+" Старые вещи: "+ str(len(old_things))+" шт.\n")
     print("Загружено: "+ str(len(loaded_things_codes))+" шт.")
+    writeProtocol(str(datetime.now()) + " Загружено: "+ str(len(loaded_things_codes))+" шт.\n")
     new_things_codes = list(set(loaded_things_codes).difference(old_things))
     print("Новых: "+ str(len(new_things_codes))+" шт.")
+    writeProtocol(str(datetime.now()) + " Новых: "+ str(len(new_things_codes))+" шт.\n")
     new_things_codes = list(set(new_things_codes)) #Убираем дублированные элементы
     print("Новых без дублей: " + str(len(new_things_codes)) + " шт.")
+    writeProtocol(str(datetime.now()) + " Новых без дублей: " + str(len(new_things_codes)) + " шт.\n")
     new_things_codes_full = new_things_codes[:] #Эти коды будут записаны в БД
 
     '''
@@ -70,6 +76,10 @@ def thingsUpdateHnM(type):
 
     return new_things
 
+def writeProtocol(text):
+    file = open('protocol.txt', 'a')
+    file.write(text)
+    file.close
 
 if HnMupd:
     def notify(new_things, type):
@@ -79,5 +89,5 @@ if HnMupd:
     types = ['male','female','childrens','HOME']
     for i in range(len(types)):
         new_things = thingsUpdateHnM(types[i])
-        notify(new_things, types[i])
+        #notify(new_things, types[i])
 

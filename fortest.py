@@ -1,17 +1,7 @@
 import parserHnM
 import sqlRequests
-from datetime import datetime
 
-now = datetime.now()
-print(now)
-loadedDate = datetime.strptime("2017-08-22 23:08:54", "%Y-%m-%d %H:%M:%S")
-print(loadedDate)
-delta = loadedDate - now
-delta.days
-print(delta.days)
-print(type(delta))
-
-
+'''
 things = parserHnM.getChildrens()
 sqlRequests.saveThings(things)
 
@@ -24,4 +14,8 @@ sqlRequests.saveThings(things)
 things = parserHnM.getHOME()
 sqlRequests.saveThings(things)
 
-
+'''
+new_things_codes = ['1',2,3,4,5,'6',7,8,9,1,2,3,4,5,'6','6','6','6','6',7,8,9]
+print(new_things_codes)
+new_things_codes = list(set(new_things_codes))
+print(new_things_codes)
