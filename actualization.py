@@ -4,7 +4,6 @@ import sqlRequests
 
 def actualThingsHnM():
     things = sqlRequests.getThingsWithDate()
-    print("sfef")
     counter = 0
     now = datetime.now()
     for i in range(len(things)):
@@ -15,6 +14,12 @@ def actualThingsHnM():
             if parserHnM.getThingStatusById(things[i][0]) == False:
                 sqlRequests.deleteThingById(things[i][0])
                 counter +=1
+    writeProtocol(str(datetime.now()) +" -------------Удалено "+str(counter)+" Вещей\n")
     print("Удалено "+str(counter)+" Вещей")
+
+def writeProtocol(text):
+    file = open('protocol.txt', 'a')
+    file.write(text)
+    file.close
 
 actualThingsHnM()
