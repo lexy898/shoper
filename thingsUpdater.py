@@ -109,7 +109,7 @@ if HnMupd:
     for type in types:
         writeProtocol('******* type: '+type+'\n')
         new_things = thingsUpdate(type, company)
-        #notify(new_things, type, company)
+        notify(new_things, type, company)
     writeProtocol('______________________________________\n\n')
 
 if RoxyUpd:
@@ -119,5 +119,5 @@ if RoxyUpd:
     for type in types:
         writeProtocol('******* type: ' + type + '\n')
         new_things = thingsUpdate(type, company)
-        #notify(new_things, type, company)
+        notify(new_things, type, company)
     writeProtocol('______________________________________\n\n')
