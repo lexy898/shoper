@@ -4,7 +4,7 @@ import sqlRequests
 import notifier
 from datetime import datetime
 
-HnMupd = False
+HnMupd = True
 RoxyUpd = True
 
 def thingsUpdate(type, company):
@@ -100,19 +100,21 @@ def getRoxyLoadedResults(type):
         print("Параметра " + str(type) + " не существует")
     return loaded_results
 
-def notify(new_things, type):
+def notify(new_things, type, company):
     print("Type: "+type+", Добавлено штук:"+str(len(new_things)))
     if len(new_things) != 0:
-        notifier.sendMessageHnM(new_things, type)
+        notifier.sendMessageHnM(new_things, type, company)
 
 if HnMupd:
+    company = 'H&M'
     types = ['male','female','childrens','HOME']
     for type in types:
-        new_things = thingsUpdate(type,'H&M')
-        #notify(new_things, types[i])
+        new_things = thingsUpdate(type, company)
+        notify(new_things, type, company)
 
 if RoxyUpd:
+    company = 'Roxy'
     types = ['female','childrens']
     for type in types:
-        new_things = thingsUpdate(type,'Roxy')
-        #notify(new_things, types[i])
+        new_things = thingsUpdate(type, company)
+        notify(new_things, type, company)

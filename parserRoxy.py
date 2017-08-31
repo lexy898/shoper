@@ -5,7 +5,7 @@ import time
 from bs4 import BeautifulSoup
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
-company = 'roxy'
+company = 'Roxy'
 
 femaleUrl = "http://www.roxy-russia.ru/skidki-women/"
 childrensUrl = "http://www.roxy-russia.ru/skidki-kids/"
@@ -18,7 +18,7 @@ def getThings(url):
     results = []
     try:
         while True:
-            print(startIndex)
+            print("company: "+company+" | page: "+str(startIndex/48+1))
             req = url+"?sz=48&start="+str(startIndex)
             response = requests.get(req, headers=headers, cookies=cookies)
             if (response.status_code == 200):
@@ -55,7 +55,6 @@ def getThings(url):
     except requests.exceptions.HTTPError as err:
         logging.error(u'' + str(err) + '')
     print("Вещей загружено: "+str(len(results)))
-    print(results)
     return results
 
 def getThingStatusById(id):
