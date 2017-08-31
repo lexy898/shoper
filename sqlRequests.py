@@ -6,11 +6,13 @@ logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level
 _DB_PATH = "h&m.sqlite"
 
 
-def saveThings(results):
+def saveThings(results, company):
     default = "-"
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
+        cursor.execute("SELECT id FROM company WHERE company_name ='"+str(company)+"'")
+        company = cursor.fetchone()[0]
         for i in range(len(results)):
             thing = results[i]
             cursor.execute("INSERT INTO result VALUES (\""
@@ -19,33 +21,37 @@ def saveThings(results):
                   +str(thing["actualPrice_rub_double"])+",\""
                   +str(thing["name_text_ru"]).replace('"','')+"\",\""
                   +str(thing.get("sizes_ru_string_mv",default)) + "\", \""
+                  +str(company)+","
                   +datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")+"\")")
-        conn.commit()
+            conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
 
-def addNewThings(new_things):
+def addNewThings(new_things, company):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
-        for i in range(len(new_things)):
-            thing = new_things[i]
-            cursor.execute("INSERT INTO result VALUES (\""
-                  + str(thing[0]) + "\","
-                  + str(thing[1]) + ","
-                  + str(thing[2]) + ",\""
-                  + str(thing[3]) + "\",\""
-                  + str(thing[4]) + "\", \""
-                  +datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")+"\")")
+        cursor.execute("SELECT id FROM company WHERE company_name ='" + str(company) + "'")
+        company = cursor.fetchone()[0]
+        for thing in new_things:
             print("INSERT INTO result VALUES (\""
                   + str(thing[0]) + "\","
                   + str(thing[1]) + ","
                   + str(thing[2]) + ",\""
-                  + str(thing[3]) + "\",\""
-                  + str(thing[4]) + "\", \""
+                  + str(thing[3]).replace('"','') + "\",\""
+                  + str(thing[4]) + "\","
+                  + str(company) + ",\""
                   +datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")+"\")")
-        conn.commit()
+            cursor.execute("INSERT INTO result VALUES (\""
+                  + str(thing[0]) + "\","
+                  + str(thing[1]) + ","
+                  + str(thing[2]) + ",\""
+                  + str(thing[3]).replace('"','') + "\",\""
+                  + str(thing[4]) + "\","
+                  + str(company) + ",\""
+                  +datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")+"\")")
+            conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
@@ -60,11 +66,12 @@ def deleteThingById(id):
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
 
-def getThings():
+def getThings(company):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("SELECT defaultCode_string FROM result")
+        cursor.execute("SELECT defaultCode_string FROM result WHERE company = "
+                       "(SELECT id FROM company WHERE company_name ='"+str(company)+"')")
         things = cursor.fetchall()
         result = [x[0] for x in things]
         conn.close()
@@ -72,11 +79,12 @@ def getThings():
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getThingsWithDate():
+def getThingsWithDate(company):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("SELECT defaultCode_string, date FROM result")
+        cursor.execute("SELECT defaultCode_string, date FROM result WHERE company = "
+                       "(SELECT id FROM company WHERE company_name ='"+str(company)+"')")
         result = cursor.fetchall()
         conn.close()
         return result

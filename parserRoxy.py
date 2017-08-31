@@ -7,7 +7,8 @@ from bs4 import BeautifulSoup
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
 company = 'roxy'
 
-url = "http://www.roxy-russia.ru/skidki-women/"
+femaleUrl = "http://www.roxy-russia.ru/skidki-women/"
+childrensUrl = "http://www.roxy-russia.ru/skidki-kids/"
 
 def getThings(url):
     startIndex = 0
@@ -30,10 +31,10 @@ def getThings(url):
                     break
                 for product in products:
                     code = product.find('div', {'class': 'image thumbnail productimage'}).get('data-productid')
-                    price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-standardprice')
-                    actualPrice = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-salesprice')
+                    price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-standardprice').replace("-","0")
+                    actualPrice = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-salesprice').replace("-","0")
                     name = product.find('div', {'class': 'name'}).find('a').text
-                    thing = [code, price, actualPrice, name]
+                    thing = [code, price, actualPrice, name,'-']
                     results.append(thing)
             else:
                 if (response.status_code == 403 and failCounter < 5):
@@ -57,4 +58,11 @@ def getThings(url):
     print(results)
     return results
 
-getThings(url)
+def getThingStatusById(id):
+    return True
+
+def getFemale():
+    return getThings(femaleUrl)
+
+def getChildrens():
+    return getThings(childrensUrl)

@@ -30,8 +30,10 @@ requests_log.propagate = True
 '''
 
 def getThings(url, endOfUrl):
+    global parsed_string
     startIndex = 0
     failCounter = 0
+    loaded_results = []
     results = []
     headers = sqlRequests.getHeaders(company)
     cookies = sqlRequests.getCookies(company)
@@ -48,8 +50,8 @@ def getThings(url, endOfUrl):
                         break
                 except ValueError as err:
                     logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
-                results.extend(parsed_string["results"])
-                print("item: "+str(startIndex)+"  "+str(len(results)))
+                loaded_results.extend(parsed_string["results"])
+                print("item: "+str(startIndex)+"  "+str(len(loaded_results)))
                 startIndex += 30
                 failCounter = 0
             else:
@@ -69,9 +71,18 @@ def getThings(url, endOfUrl):
         logging.error(u'' + str(err) + '')
     except requests.exceptions.HTTPError as err:
         logging.error(u'' + str(err) + '')
+
+    for full_result in loaded_results:
+        result = [full_result["defaultCode_string"],
+                  full_result["productWhitePrice_rub_double"],
+                  full_result["actualPrice_rub_double"],
+                  full_result["name_text_ru"],
+                  full_result.get("sizes_ru_string_mv","-"),]
+        results.append(result)
     return results
 
 def getThingStatusById(id):
+    global parsed_string
     headers = sqlRequests.getHeaders(company)
     cookies = sqlRequests.getCookies(company)
     try:
@@ -79,6 +90,7 @@ def getThingStatusById(id):
         response = requests.get(req, headers=headers, cookies=cookies, timeout = 15.0)
         if (response.status_code == 200):
             cookies.update(dict(response.cookies))  # Обновляем куки
+            sqlRequests.setCookies(company, str(cookies))  # Сохраняем обновленные куки в БД
             json_string = response.content
             try:
                 parsed_string = json.loads(json_string)
@@ -93,7 +105,6 @@ def getThingStatusById(id):
                 return True
             else:
                 return False
-            sqlRequests.setCookies(company, str(cookies))  # Сохраняем обновленные куки в БД
 
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
