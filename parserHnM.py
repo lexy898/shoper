@@ -6,6 +6,7 @@ import sqlRequests
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
 company = 'h&m'
+pageSize = 30
 
 femaleUrl ='https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=ladies_all&start='
 maleUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=men_all&start='
@@ -51,8 +52,8 @@ def getThings(url, endOfUrl):
                 except ValueError as err:
                     logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
                 loaded_results.extend(parsed_string["results"])
-                print("item: "+str(startIndex)+"  "+str(len(loaded_results)))
-                startIndex += 30
+                print("company: " + company + " | page: " + str(startIndex / pageSize + 1))
+                startIndex += pageSize
                 failCounter = 0
             else:
                 if (response.status_code == 403 and failCounter < 5):

@@ -341,3 +341,15 @@ def getSubscribers(brand, typeOfGood): #Получить подписчиков 
         return result
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
+
+def getAllSubscribers(): #Получить всех подписчиков
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT chatid FROM compilance_user_prod")
+        subscribers = cursor.fetchall()
+        conn.close()
+        result = [x[0] for x in subscribers]
+        return result
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')

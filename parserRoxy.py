@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
 company = 'Roxy'
+pageSize = 48
 
 femaleUrl = "http://www.roxy-russia.ru/skidki-women/"
 childrensUrl = "http://www.roxy-russia.ru/skidki-kids/"
@@ -18,7 +19,7 @@ def getThings(url):
     results = []
     try:
         while True:
-            print("company: "+company+" | page: "+str(startIndex/48+1))
+            print("company: "+company+" | page: "+str(startIndex/pageSize+1))
             req = url+"?sz=48&start="+str(startIndex)
             response = requests.get(req, headers=headers, cookies=cookies)
             if (response.status_code == 200):
@@ -45,7 +46,7 @@ def getThings(url):
                     break
             sqlRequests.setCookies(company, str(cookies))  # Сохраняем обновленные куки в БД
             failCounter = 0
-            startIndex += 48
+            startIndex += pageSize
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
     except requests.exceptions.ReadTimeout as err:

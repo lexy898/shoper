@@ -20,17 +20,14 @@ def thingsUpdate(type, company):
     loaded_things_codes = []
     for thing in loaded_things:
         loaded_things_codes.append(thing[0])
-    print("Старые вещи: "+ str(len(old_things))+" шт.")
-    writeProtocol(str(datetime.now())+" Старые вещи: "+ str(len(old_things))+" шт.\n")
-    print("Загружено: "+ str(len(loaded_things_codes))+" шт.")
-    writeProtocol(str(datetime.now()) + " Загружено: "+ str(len(loaded_things_codes))+" шт.\n")
+    writeProtocol("Старые вещи: "+ str(len(old_things))+" шт.\n")
+    writeProtocol("Загружено: "+ str(len(loaded_things_codes))+" шт.\n")
     new_things_codes = list(set(loaded_things_codes).difference(old_things))
-    print("Новых: "+ str(len(new_things_codes))+" шт.")
-    writeProtocol(str(datetime.now()) + " Новых: "+ str(len(new_things_codes))+" шт.\n")
+    writeProtocol("Новых: "+ str(len(new_things_codes))+" шт.\n")
     new_things_codes = list(set(new_things_codes)) #Убираем дублированные элементы
-    print("Новых без дублей: " + str(len(new_things_codes)) + " шт.")
-    writeProtocol(str(datetime.now()) + " Новых без дублей: " + str(len(new_things_codes)) + " шт.\n")
+    writeProtocol("Новых без дублей: " + str(len(new_things_codes)) + " шт.\n")
     new_things_codes_full = new_things_codes[:] #Эти коды будут записаны в БД
+    writeProtocol('____________________\n\n')
 
     '''
     По каждому коду в списке проверяется актуальность вещи
@@ -107,14 +104,20 @@ def notify(new_things, type, company):
 
 if HnMupd:
     company = 'H&M'
+    writeProtocol('******* company: '+company+' | time: '+str(datetime.now())+' *******\n')
     types = ['male','female','childrens','HOME']
     for type in types:
+        writeProtocol('******* type: '+type+'\n')
         new_things = thingsUpdate(type, company)
-        notify(new_things, type, company)
+        #notify(new_things, type, company)
+    writeProtocol('______________________________________\n\n')
 
 if RoxyUpd:
     company = 'Roxy'
+    writeProtocol('******* company: ' + company + ' | time: ' + str(datetime.now()) + ' *******\n')
     types = ['female','childrens']
     for type in types:
+        writeProtocol('******* type: ' + type + '\n')
         new_things = thingsUpdate(type, company)
-        notify(new_things, type, company)
+        #notify(new_things, type, company)
+    writeProtocol('______________________________________\n\n')
