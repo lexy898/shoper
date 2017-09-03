@@ -1,5 +1,7 @@
 import parserHnM
 import parserRoxy
+import parserDC
+import parserQuickSilver
 import sqlRequests
 import config
 import notifier
@@ -12,6 +14,10 @@ def thingsUpdate(type, company):
         loaded_things = parserHnM.getHnMLoadedResults(type)
     elif company == 'Roxy':
         loaded_things = parserRoxy.getRoxyLoadedResults(type)
+    elif company == 'DC':
+        loaded_things = parserDC.getDCLoadedResults(type)
+    elif company == 'QuickSilver':
+        loaded_things = parserQuickSilver.getUickSilverLoadedResults(type)
     else:
         print("Компании " + str(company) + " не существует")
         return 0
@@ -39,6 +45,10 @@ def thingsUpdate(type, company):
             status = parserHnM.getThingStatusById(new_things_codes[i])
         elif company == 'Roxy':
             status = parserRoxy.getThingStatusById(new_things_codes[i])
+        elif company == 'DC':
+            status = parserDC.getThingStatusById(new_things_codes[i])
+        elif company == 'QuickSilver':
+            status = parserQuickSilver.getThingStatusById(new_things_codes[i])
         if not status:
             del new_things_codes[i]
         else:
