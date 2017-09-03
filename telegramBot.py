@@ -20,7 +20,7 @@ def setHomeScreen(message):
     bot.send_message(message.chat.id, "😌Выбирай:", reply_markup=markup)
 
 def setBrandSettingsScreen(message):
-    typesOfGoodByCompany = sqlRequests.getTypesOfGoodByCompany(message.text)
+    typesOfGoodByCompany = sqlRequests.getIdsTypesOfGoodByCompany(message.text)
     typesOfGoodByUser = sqlRequests.getTypesOfGoodByUser(message.chat.id, message.text)
     subscribe = list(set(typesOfGoodByCompany).difference(typesOfGoodByUser))
     markup = types.ReplyKeyboardMarkup()
@@ -34,7 +34,7 @@ def setBrandSettingsScreen(message):
 def refreshBrandSettingsScreen(message):
     try:
         currentCompany = sqlRequests.getCurrentCompanyByUser(message.chat.id)
-        typesOfGoodByCompany = sqlRequests.getTypesOfGoodByCompany(brands[currentCompany])
+        typesOfGoodByCompany = sqlRequests.getIdsTypesOfGoodByCompany(brands[currentCompany])
         typesOfGoodByUser = sqlRequests.getTypesOfGoodByUser(message.chat.id, brands[currentCompany])
         subscribe = list(set(typesOfGoodByCompany).difference(typesOfGoodByUser))
         markup = types.ReplyKeyboardMarkup()

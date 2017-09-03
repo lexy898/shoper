@@ -5,7 +5,7 @@ import time
 import sqlRequests
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
-company = 'h&m'
+company = 'H&M'
 pageSize = 30
 
 femaleUrl ='https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=ladies_all&start='
@@ -74,12 +74,15 @@ def getThings(url, endOfUrl):
         logging.error(u'' + str(err) + '')
 
     for full_result in loaded_results:
-        result = [full_result["defaultCode_string"],
-                  full_result["productWhitePrice_rub_double"],
-                  full_result["actualPrice_rub_double"],
-                  full_result["name_text_ru"],
-                  full_result.get("sizes_ru_string_mv","-"),]
-        results.append(result)
+        try:
+            result = [full_result["defaultCode_string"],
+                      full_result.get("productWhitePrice_rub_double",0),
+                      full_result.get("actualPrice_rub_double",0),
+                      full_result["name_text_ru"],
+                      full_result.get("sizes_ru_string_mv","-"),]
+            results.append(result)
+        except ValueError as err:
+            logging.error(u'' + str(err) + ' Ошибка парсинга: '+full_result)
     return results
 
 def getThingStatusById(id):
@@ -120,14 +123,15 @@ def getThingStatusById(id):
         logging.error(u'' + str(err) + '')
         return False
 
-def getFemale():
-    return getThings(femaleUrl, endOfUrl)
-
-def getMale():
-    return getThings(maleUrl, endOfUrl)
-
-def getChildrens():
-    return getThings(childrensUrl, endOfUrl)
-
-def getHOME():
-    return getThings(homeUrl, endOfUrl)
+def getHnMLoadedResults(type):
+    if type == 'men':
+        return getThings(maleUrl, endOfUrl)
+    elif type == 'woman':
+        return getThings(femaleUrl, endOfUrl)
+    elif type == 'kids':
+        return getThings(childrensUrl, endOfUrl)
+    elif type == 'home':
+        return getThings(homeUrl, endOfUrl)
+    else:
+        print("Параметра " + str(type) + " не существует")
+        return 0

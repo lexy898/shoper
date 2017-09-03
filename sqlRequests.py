@@ -184,16 +184,28 @@ def getSubscriptions(chatId): #получить названия брендов,
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getTypesOfGood():
+def getTypesOfGood():          #Получить словарь id:  description
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT id, description FROM type_of_goods")
         typesOfGood = cursor.fetchall()
         result = {}
-        for i in range(len(typesOfGood)):
-            result[typesOfGood[i][0]] = typesOfGood[i][1]
+        for type in typesOfGood:
+            result[type[0]] = type[1]
         conn.close()
+        return result
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')
+
+def getIdTypesOfGoodByType(type):
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM type_of_goods WHERE type = \'"+type+"\'")
+        id = cursor.fetchone()
+        conn.close()
+        result = id[0]
         return result
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
@@ -210,13 +222,27 @@ def getCurrentCompanyByUser(chatId):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getTypesOfGoodByCompany(company):
+def getIdsTypesOfGoodByCompany(company): #Получить id типов вещей указанной компании
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT type_of_good FROM compilance_comp_prod "
                        "WHERE company_id = (SELECT id FROM company "
                        "WHERE company_name = '"+str(company)+"')")
+        typesOfGood = cursor.fetchall()
+        result = [x[0] for x in typesOfGood]
+        conn.close()
+        return result
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')
+
+def getTypesOfGoodByCompany(company): #Получить Названия типов вещей указанной компании
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT TOG.type FROM compilance_comp_prod CCP "
+                       "JOIN type_of_goods TOG ON CCP.type_of_good = TOG.id "
+                       "WHERE company_id = (SELECT id FROM company WHERE company_name = \'"+company+"\')")
         typesOfGood = cursor.fetchall()
         result = [x[0] for x in typesOfGood]
         conn.close()
@@ -240,7 +266,7 @@ def getTypesOfGoodByUser(chatid, company):
         logging.error(u'' + str(err) + '')
 
 def addSubscribeBrand(chatid, brand):
-    typesOfGood = getTypesOfGoodByCompany(brand)
+    typesOfGood = getIdsTypesOfGoodByCompany(brand)
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -353,3 +379,16 @@ def getAllSubscribers(): #Получить всех подписчиков
         return result
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
+
+def getDescriptionByTypeOfGood(type):
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT description FROM type_of_goods WHERE type = \'"+type+"\'")
+        description = cursor.fetchone()
+        conn.close()
+        result = description[0]
+        return result
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')
+

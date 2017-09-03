@@ -61,8 +61,11 @@ def getThings(url):
 def getThingStatusById(id):
     return True
 
-def getFemale():
-    return getThings(femaleUrl)
-
-def getChildrens():
-    return getThings(childrensUrl)
+def getRoxyLoadedResults(type):
+    if type == 'woman':
+        return getThings(femaleUrl)
+    elif type == 'kids':
+        return getThings(childrensUrl)
+    else:
+        print("Параметра " + str(type) + " не существует")
+        return 0

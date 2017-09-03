@@ -1,19 +1,17 @@
 import parserHnM
 import parserRoxy
 import sqlRequests
+import config
 import notifier
 from datetime import datetime
-
-HnMupd = True
-RoxyUpd = True
 
 def thingsUpdate(type, company):
     old_things = sqlRequests.getThings(company)
     loaded_things = []
     if company == 'H&M':
-        loaded_things = getHnMLoadedResults(type)
+        loaded_things = parserHnM.getHnMLoadedResults(type)
     elif company == 'Roxy':
-        loaded_things = getRoxyLoadedResults(type)
+        loaded_things = parserRoxy.getRoxyLoadedResults(type)
     else:
         print("Компании " + str(company) + " не существует")
         return 0
@@ -73,51 +71,19 @@ def writeProtocol(text):
     file.write(text)
     file.close()
 
-def getHnMLoadedResults(type):
-    loaded_results = []
-    if type == 'male':
-        loaded_results = parserHnM.getMale()
-    elif type == 'female':
-        loaded_results = parserHnM.getFemale()
-    elif type == 'childrens':
-        loaded_results = parserHnM.getChildrens()
-    elif type == 'HOME':
-        loaded_results = parserHnM.getHOME()
-    else:
-        print("Параметра " + str(type) + " не существует")
-    return loaded_results
-
-def getRoxyLoadedResults(type):
-    loaded_results = []
-    if type == 'female':
-        loaded_results = parserRoxy.getFemale()
-    elif type == 'childrens':
-        loaded_results = parserRoxy.getChildrens()
-    else:
-        print("Параметра " + str(type) + " не существует")
-    return loaded_results
-
 def notify(new_things, type, company):
     print("Type: "+type+", Добавлено штук:"+str(len(new_things)))
     if len(new_things) != 0:
         notifier.sendMessageHnM(new_things, type, company)
 
-if HnMupd:
-    company = 'H&M'
-    writeProtocol('******* company: '+company+' | time: '+str(datetime.now())+' *******\n')
-    types = ['male','female','childrens','HOME']
-    for type in types:
-        writeProtocol('******* type: '+type+'\n')
-        new_things = thingsUpdate(type, company)
-        notify(new_things, type, company)
-    writeProtocol('______________________________________\n\n')
-
-if RoxyUpd:
-    company = 'Roxy'
-    writeProtocol('******* company: ' + company + ' | time: ' + str(datetime.now()) + ' *******\n')
-    types = ['female','childrens']
-    for type in types:
-        writeProtocol('******* type: ' + type + '\n')
-        new_things = thingsUpdate(type, company)
-        notify(new_things, type, company)
-    writeProtocol('______________________________________\n\n')
+brands = sqlRequests.getBrandsInvert().keys()
+for brand in brands:
+    if config.getUpdateStatus(brand) == 'True':
+        writeProtocol('******* company: ' + brand + ' | time: ' + str(datetime.now()) + ' *******\n')
+        types = sqlRequests.getTypesOfGoodByCompany(brand)
+        for type in types:
+            writeProtocol('******* type: ' + type + '\n')
+            new_things = thingsUpdate(type, brand)
+            if config.getNotifyStatus(brand) == 'True':
+                notify(new_things, type, brand)
+            writeProtocol('______________________________________\n\n')
