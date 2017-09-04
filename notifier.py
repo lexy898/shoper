@@ -6,8 +6,8 @@ import sqlRequests
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
 
-token = "426617203:AAHqKOH-62wRF1XSEFR8NS6372nHMWNR0BE"
-bot = telebot.TeleBot(token)
+TOKEN = config.getToken()
+bot = telebot.TeleBot(TOKEN)
 brands = sqlRequests.getBrandsInvert()
 
 def sendMessageHnM(new_things, type, company):

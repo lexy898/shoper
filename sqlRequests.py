@@ -5,7 +5,7 @@ from datetime import datetime
 logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s', level = logging.ERROR, filename = u'log.txt')
 _DB_PATH = "h&m.sqlite"
 
-
+# Сохранить вещи в БД
 def saveThings(results, company):
     default = "-"
     try:
@@ -28,6 +28,7 @@ def saveThings(results, company):
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
 
+# Добавить новые вещи в БД
 def addNewThings(new_things, company):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -56,6 +57,7 @@ def addNewThings(new_things, company):
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
 
+# Удалить вещь по ID
 def deleteThingById(id):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -66,6 +68,7 @@ def deleteThingById(id):
     except sqlite3.DatabaseError as err:
         print("Error: ", err)
 
+# Получить коды вещей указанной компании
 def getThings(company):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -79,6 +82,7 @@ def getThings(company):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Получить код вещи указанной компании с датой ее загрузки
 def getThingsWithDate(company):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -91,7 +95,7 @@ def getThingsWithDate(company):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-
+# Получить http заголовки интернет-магазина
 def getHeaders(company):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -103,6 +107,7 @@ def getHeaders(company):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Записать http заголовки интернет-магазина
 def setHeaders(company, headers):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -113,6 +118,7 @@ def setHeaders(company, headers):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Получить cookies  интернет-магазина
 def getCookies(company):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -124,6 +130,7 @@ def getCookies(company):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Записать cookies  интернет-магазина
 def setCookies(company, cookie):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -134,6 +141,7 @@ def setCookies(company, cookie):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# преобразовать в словарь
 def convertToDict(obj):
     import ast
     try:
@@ -142,7 +150,8 @@ def convertToDict(obj):
         import sys
         logging.error(u'Error converting to dictionary. Module: '+str(sys.modules[__name__])+'')
 
-def getBrands(): #Возвращает бренды в виде словаря {id:brand}
+#Возвращает бренды в виде словаря {id:brand}
+def getBrands():
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -156,7 +165,8 @@ def getBrands(): #Возвращает бренды в виде словаря {
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getBrandsInvert(): #Возвращает те же пары, что и getBrands(), но ключ и значение поменяны местами
+#Возвращает те же пары, что и getBrands(), но ключ и значение поменяны местами
+def getBrandsInvert():
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -170,7 +180,8 @@ def getBrandsInvert(): #Возвращает те же пары, что и getBr
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getSubscriptions(chatId): #получить названия брендов, на которые подписан пользователь
+#получить названия брендов, на которые подписан пользователь
+def getSubscriptions(chatId):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -184,7 +195,8 @@ def getSubscriptions(chatId): #получить названия брендов,
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getTypesOfGood():          #Получить словарь id:  description
+#Получить словарь id:  description (содержит типы вещей)
+def getTypesOfGood():
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -198,6 +210,7 @@ def getTypesOfGood():          #Получить словарь id:  description
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Получить список id типов вещей
 def getIdTypesOfGoodByType(type):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -210,6 +223,7 @@ def getIdTypesOfGoodByType(type):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Получить текущий активный бренд конкретного пользователя
 def getCurrentCompanyByUser(chatId):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -222,7 +236,8 @@ def getCurrentCompanyByUser(chatId):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getIdsTypesOfGoodByCompany(company): #Получить id типов вещей указанной компании
+# Получить id типов вещей указанной компании
+def getIdsTypesOfGoodByCompany(company):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -236,7 +251,8 @@ def getIdsTypesOfGoodByCompany(company): #Получить id типов вещ�
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getTypesOfGoodByCompany(company): #Получить Названия типов вещей указанной компании
+# Получить Названия типов вещей указанной компании
+def getTypesOfGoodByCompany(company):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -250,6 +266,7 @@ def getTypesOfGoodByCompany(company): #Получить Названия тип�
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Получить список типов вещей конкретного пользователя для указанного бренда
 def getTypesOfGoodByUser(chatid, company):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -265,6 +282,7 @@ def getTypesOfGoodByUser(chatid, company):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Добавить подписку на бренд для конкретного пользователя
 def addSubscribeBrand(chatid, brand):
     typesOfGood = getIdsTypesOfGoodByCompany(brand)
     try:
@@ -281,6 +299,7 @@ def addSubscribeBrand(chatid, brand):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Удалить подписку от бренда для конкретного пользователя
 def delSubscribeBrand(chatid, brand):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -294,13 +313,14 @@ def delSubscribeBrand(chatid, brand):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Добавить подписку на тип вещи текущего бренда для конкретного пользователя
 def addSubscribeTypeOfGoods(chatid, typeOfGood):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
         cursor.execute("INSERT INTO compilance_user_prod (chatid, type_of_good, company) "
                        "VALUES ("+str(chatid)+", (SELECT id FROM type_of_goods "
-                                             "WHERE description = '"+str(typeOfGood)+"'),"
+                                             "WHERE description LIKE '%"+str(typeOfGood)+"%'),"
                        "(SELECT company FROM compilance_user_prod WHERE "
                        "chatid = "+str(chatid)+" AND flag = 1))")
         conn.commit()
@@ -308,6 +328,7 @@ def addSubscribeTypeOfGoods(chatid, typeOfGood):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Удалить подписку с типа вещи конкретного пользователя текущего бренда
 def delSubscribeTypeOfGoods(chatid, typeOfGood):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -315,12 +336,13 @@ def delSubscribeTypeOfGoods(chatid, typeOfGood):
         cursor.execute("DELETE FROM  compilance_user_prod WHERE "
                        "chatid = '"+str(chatid)+"' AND type_of_good = "
                        "(SELECT id FROM type_of_goods "
-                       "WHERE description = '"+str(typeOfGood)+"') AND flag = 1")
+                       "WHERE description LIKE '%"+str(typeOfGood)+"%') AND flag = 1")
         conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Получить id всех брендов, на которые подписан пользователь
 def getUsersBrands(chatid): #Получить id всех брендов, на которые подписан пользователь
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -334,6 +356,7 @@ def getUsersBrands(chatid): #Получить id всех брендов, на �
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Снять все флаги активного бренда конкретного пользователя
 def resetFlagByUser(chatid):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -344,6 +367,7 @@ def resetFlagByUser(chatid):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Установить флаг активного бренда конкретного пользователя
 def setFlagByUser(chatid, company):
     try:
         conn = sqlite3.connect(_DB_PATH)
@@ -355,7 +379,8 @@ def setFlagByUser(chatid, company):
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getSubscribers(brand, typeOfGood): #Получить подписчиков по бренду и типу товара
+# Получить подписчиков по бренду и типу товара
+def getSubscribers(brand, typeOfGood):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -368,7 +393,8 @@ def getSubscribers(brand, typeOfGood): #Получить подписчиков 
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
-def getAllSubscribers(): #Получить всех подписчиков
+# Получить всех подписчиков
+def getAllSubscribers():
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
@@ -380,6 +406,7 @@ def getAllSubscribers(): #Получить всех подписчиков
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
 
+# Получить Description конкретного типа вещи
 def getDescriptionByTypeOfGood(type):
     try:
         conn = sqlite3.connect(_DB_PATH)
