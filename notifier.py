@@ -42,5 +42,10 @@ def formatSize(size):
     return result
 
 def discountCount(newPrice, oldPrice):
-    discount = round(100-(float(newPrice)/float(oldPrice))*100)
-    return discount
+    discount = 0
+    try:
+        discount = round(100-(float(newPrice)/float(oldPrice))*100)
+    except ZeroDivisionError as err:
+        logging.error(u'Ошибка Деления на 0' + str(err))
+    finally:
+        return discount
