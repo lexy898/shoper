@@ -3,17 +3,17 @@ import configparser
 conf = configparser.RawConfigParser()
 conf.read("config.properties")
 
-def getToken():
+def get_token():
     return conf.get("telegramBot", "token")
 
-def getUpdateStatus(company):
+def get_update_status(company):
     return conf.get("update", company)
 
-def getDaysActualization():
+def get_days_actualization():
     return conf.get("daysActualization", "days")
 
-def getNotifyStatus(company):
+def get_notify_status(company):
     return conf.get("notify", company)
 
-def getProductPage(company):
+def get_product_page(company):
     return conf.get("productPage", company)

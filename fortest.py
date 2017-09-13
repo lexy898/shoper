@@ -1,19 +1,19 @@
-import parserHnM
-import sqlRequests
+import parser_HnM
+import sql_requests
 import config
 
 '''
 things = parserHnM.getKids()
-sqlRequests.saveThings(things)
+sqlRequests.save_things(things)
 
 things = parserHnM.getMan()
-sqlRequests.saveThings(things)
+sqlRequests.save_things(things)
 
 things = parserHnM.getWoman()
-sqlRequests.saveThings(things)
+sqlRequests.save_things(things)
 
 things = parserHnM.getHome()
-sqlRequests.saveThings(things)
+sqlRequests.save_things(things)
 
 '''
-print(config.getNotifyStatus('Roxy'))
+print(config.get_notify_status('Roxy'))

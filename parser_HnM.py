@@ -2,18 +2,18 @@ import requests
 import json
 import logging
 import time
-import sqlRequests
+import sql_requests
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
-company = 'H&M'
-pageSize = 30
+COMPANY = 'H&M'
+PAGE_SIZE = 30
 
-femaleUrl ='https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=ladies_all&start='
-maleUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=men_all&start='
-childrensUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=kids_all&start='
-homeUrl = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=home_all&start='
-endOfUrl = '&pageSize=30&sale_boolean=true'
-thingByIdUrl = 'https://app2.hm.com/hmwebservices/service/article/get-article-by-code/hm-russia/Online/'
+WOMAN_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=ladies_all&start='
+MEN_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=men_all&start='
+KIDS_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=kids_all&start='
+HOME_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=home_all&start='
+END_OF_URL = '&pageSize=30&sale_boolean=true'
+THING_BY_ID_URL = 'https://app2.hm.com/hmwebservices/service/article/get-article-by-code/hm-russia/Online/'
 '''
 try:
     import http.client as http_client
@@ -30,17 +30,17 @@ requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
 '''
 
-def getThings(url, endOfUrl):
+def get_things(url, endOfUrl):
     global parsed_string
-    startIndex = 0
-    failCounter = 0
+    start_index = 0
+    fail_counter = 0
     loaded_results = []
     results = []
-    headers = sqlRequests.getHeaders(company)
-    cookies = sqlRequests.getCookies(company)
+    headers = sql_requests.get_headers(COMPANY)
+    cookies = sql_requests.get_cookies(COMPANY)
     try:
         while True:
-            req = url + str(startIndex) + endOfUrl
+            req = url + str(start_index) + endOfUrl
             response = requests.get(req, headers=headers, cookies=cookies)
             if (response.status_code == 200):
                 cookies.update(dict(response.cookies)) #Обновляем куки
@@ -51,18 +51,19 @@ def getThings(url, endOfUrl):
                         break
                 except ValueError as err:
                     logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
+                    break
                 loaded_results.extend(parsed_string["results"])
-                print("company: " + company + " | page: " + str(startIndex / pageSize + 1))
-                startIndex += pageSize
-                failCounter = 0
+                print("COMPANY: " + COMPANY + " | page: " + str(start_index / PAGE_SIZE + 1))
+                start_index += PAGE_SIZE
+                fail_counter = 0
             else:
-                if (response.status_code == 403 and failCounter < 5):
+                if (response.status_code == 403 and fail_counter < 5):
                     print(response.status_code)
-                    failCounter += 1
+                    fail_counter += 1
                     time.sleep(10)
                 else:
                     break
-        sqlRequests.setCookies(company, str(cookies)) #Сохраняем обновленные куки в БД
+        sql_requests.set_cookies(COMPANY, str(cookies)) #Сохраняем обновленные куки в БД
 
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
@@ -85,16 +86,16 @@ def getThings(url, endOfUrl):
             logging.error(u'' + str(err) + ' Ошибка парсинга: '+full_result)
     return results
 
-def getThingStatusById(id):
+def get_thing_status_by_id(id):
     global parsed_string
-    headers = sqlRequests.getHeaders(company)
-    cookies = sqlRequests.getCookies(company)
+    headers = sql_requests.get_headers(COMPANY)
+    cookies = sql_requests.get_cookies(COMPANY)
     try:
-        req = thingByIdUrl + str(id) + "/ru"
+        req = THING_BY_ID_URL + str(id) + "/ru"
         response = requests.get(req, headers=headers, cookies=cookies, timeout = 15.0)
         if (response.status_code == 200):
             cookies.update(dict(response.cookies))  # Обновляем куки
-            sqlRequests.setCookies(company, str(cookies))  # Сохраняем обновленные куки в БД
+            sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
             json_string = response.content
             try:
                 parsed_string = json.loads(json_string)
@@ -123,15 +124,15 @@ def getThingStatusById(id):
         logging.error(u'' + str(err) + '')
         return False
 
-def getHnMLoadedResults(type):
+def get_HnM_loaded_results(type):
     if type == 'men':
-        return getThings(maleUrl, endOfUrl)
+        return get_things(MEN_URL, END_OF_URL)
     elif type == 'woman':
-        return getThings(femaleUrl, endOfUrl)
+        return get_things(WOMAN_URL, END_OF_URL)
     elif type == 'kids':
-        return getThings(childrensUrl, endOfUrl)
+        return get_things(KIDS_URL, END_OF_URL)
     elif type == 'home':
-        return getThings(homeUrl, endOfUrl)
+        return get_things(HOME_URL, END_OF_URL)
     else:
         print("Параметра " + str(type) + " не существует")
         return 0

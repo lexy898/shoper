@@ -1,52 +1,52 @@
 import requests
 import logging
-import sqlRequests
+import sql_requests
 import time
 from bs4 import BeautifulSoup
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
-company = 'Roxy'
-pageSize = 48
+COMPANY = 'Roxy'
+PAGE_SIZE = 48
 
-femaleUrl = "http://www.roxy-russia.ru/skidki-women/"
-childrensUrl = "http://www.roxy-russia.ru/skidki-kids/"
+WOMAN_URL = "http://www.roxy-russia.ru/skidki-women/"
+KIDS_URL = "http://www.roxy-russia.ru/skidki-kids/"
 
-def getThings(url):
-    startIndex = 0
-    failCounter = 0
-    headers = sqlRequests.getHeaders(company)
-    cookies = sqlRequests.getCookies(company)
+def get_things(url):
+    start_index = 0
+    fail_counter = 0
+    headers = sql_requests.get_headers(COMPANY)
+    cookies = sql_requests.get_cookies(COMPANY)
     results = []
     try:
         while True:
-            print("company: "+company+" | page: "+str(startIndex/pageSize+1))
-            req = url+"?sz=48&start="+str(startIndex)
+            print("COMPANY: " + COMPANY + " | page: " + str(start_index / PAGE_SIZE + 1))
+            req = url+"?sz=48&start="+str(start_index)
             response = requests.get(req, headers=headers, cookies=cookies)
             if (response.status_code == 200):
                 cookies.update(dict(response.cookies))  # Обновляем куки
                 soup = BeautifulSoup(response.content, "html.parser")
 
-                productGrid = soup.find('div', class_='isproductgrid')
-                products = productGrid.find_all('div', {'class': 'producttileinner'})
+                product_grid = soup.find('div', class_='isproductgrid')
+                products = product_grid.find_all('div', {'class': 'producttileinner'})
                 if products == []:
                     break
                 for product in products:
                     code = product.find('div', {'class': 'image thumbnail productimage'}).get('data-productid')
                     price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-standardprice').replace("-","0")
-                    actualPrice = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-salesprice').replace("-","0")
+                    actual_price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-salesprice').replace("-","0")
                     name = product.find('div', {'class': 'name'}).find('a').text
-                    thing = [code, price, actualPrice, name,'-']
+                    thing = [code, price, actual_price, name,'-']
                     results.append(thing)
             else:
-                if (response.status_code == 403 and failCounter < 5):
+                if (response.status_code == 403 and fail_counter < 5):
                     print(response.status_code)
-                    failCounter += 1
+                    fail_counter += 1
                     time.sleep(10)
                 else:
                     break
-            sqlRequests.setCookies(company, str(cookies))  # Сохраняем обновленные куки в БД
-            failCounter = 0
-            startIndex += pageSize
+            sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
+            fail_counter = 0
+            start_index += PAGE_SIZE
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
     except requests.exceptions.ReadTimeout as err:
@@ -58,14 +58,14 @@ def getThings(url):
     print("Вещей загружено: "+str(len(results)))
     return results
 
-def getThingStatusById(id):
+def get_thing_status_by_id(id):
     return True
 
-def getRoxyLoadedResults(type):
+def get_Roxy_loaded_results(type):
     if type == 'woman':
-        return getThings(femaleUrl)
+        return get_things(WOMAN_URL)
     elif type == 'kids':
-        return getThings(childrensUrl)
+        return get_things(KIDS_URL)
     else:
         print("Параметра " + str(type) + " не существует")
         return 0
