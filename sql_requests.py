@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
-_DB_PATH = str(os.getcwd())+"\h&m.sqlite"
+_DB_PATH = str(os.getcwd())+"/h&m.sqlite"
 
 
 # Сохранить вещи в БД

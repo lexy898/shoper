@@ -45,7 +45,7 @@ def get_things(url, endOfUrl):
             if (response.status_code == 200):
                 cookies.update(dict(response.cookies)) #Обновляем куки
                 try:
-                    parsed_string = json.loads(response.content)
+                    parsed_string = json.loads(response.content.decode('utf-8'))
                     if (parsed_string["results"] == []):
                         break
                 except ValueError as err:
@@ -95,9 +95,8 @@ def get_thing_status_by_id(id):
         if (response.status_code == 200):
             cookies.update(dict(response.cookies))  # Обновляем куки
             sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
-            json_string = response.content
             try:
-                parsed_string = json.loads(json_string)
+                parsed_string = json.loads(response.content.decode('utf-8'))
                 if (parsed_string["product"] == []):
                     return False
             except ValueError as err:
