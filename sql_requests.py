@@ -1,9 +1,10 @@
 import sqlite3
 import logging
 from datetime import datetime
+import os
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
-_DB_PATH = "h&m.sqlite"
+_DB_PATH = str(os.getcwd())+"\h&m.sqlite"
 
 
 # Сохранить вещи в БД
@@ -325,7 +326,7 @@ def del_subscribe_brand(chatid, brand):
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("SELECT id_of_company from COMPANY WHERE company_name = '" + brand + "'")
+        cursor.execute("SELECT id from COMPANY WHERE company_name = '" + brand + "'")
         id_of_company = cursor.fetchall()
         id_of_company = id_of_company[0][0]
         cursor.execute("DELETE FROM compilance_user_prod WHERE chatid = '" + str(chatid) + "' AND COMPANY = " + str(id_of_company))

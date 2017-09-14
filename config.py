@@ -1,7 +1,8 @@
 import configparser
+import os
 
 conf = configparser.RawConfigParser()
-conf.read("config.properties")
+conf.read(str(os.getcwd())+"\config.properties")
 
 def get_token():
     return conf.get("telegramBot", "token")

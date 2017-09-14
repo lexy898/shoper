@@ -1,6 +1,7 @@
 import parser_HnM
 import sql_requests
 import config
+import os
 
 '''
 things = parserHnM.getKids()
@@ -16,4 +17,4 @@ things = parserHnM.getHome()
 sqlRequests.save_things(things)
 
 '''
-print(config.get_notify_status('Roxy'))
+print(str(os.getcwd())+"config.properties")

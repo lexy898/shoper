@@ -44,9 +44,8 @@ def get_things(url, endOfUrl):
             response = requests.get(req, headers=headers, cookies=cookies)
             if (response.status_code == 200):
                 cookies.update(dict(response.cookies)) #Обновляем куки
-                json_string = response.content
                 try:
-                    parsed_string = json.loads(json_string)
+                    parsed_string = json.loads(response.content)
                     if (parsed_string["results"] == []):
                         break
                 except ValueError as err:
@@ -73,18 +72,18 @@ def get_things(url, endOfUrl):
         logging.error(u'' + str(err) + '')
     except requests.exceptions.HTTPError as err:
         logging.error(u'' + str(err) + '')
-
-    for full_result in loaded_results:
-        try:
-            result = [full_result["defaultCode_string"],
-                      full_result.get("productWhitePrice_rub_double",0),
-                      full_result.get("actualPrice_rub_double",0),
-                      full_result["name_text_ru"],
-                      full_result.get("sizes_ru_string_mv","-"),]
-            results.append(result)
-        except ValueError as err:
-            logging.error(u'' + str(err) + ' Ошибка парсинга: '+full_result)
-    return results
+    finally:
+        for full_result in loaded_results:
+            try:
+                result = [full_result["defaultCode_string"],
+                          full_result.get("productWhitePrice_rub_double",0),
+                          full_result.get("actualPrice_rub_double",0),
+                          full_result["name_text_ru"],
+                          full_result.get("sizes_ru_string_mv","-"),]
+                results.append(result)
+            except ValueError as err:
+                logging.error(u'' + str(err) + ' Ошибка парсинга: '+full_result)
+        return results
 
 def get_thing_status_by_id(id):
     global parsed_string
