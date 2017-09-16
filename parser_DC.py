@@ -8,9 +8,10 @@ logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=l
 COMPANY = 'DC'
 PAGE_SIZE = 48
 
-MEN_URL = "http://www.dcrussia.ru/skidki-men/"
-WOMAN_URL = "http://www.dcrussia.ru/skidki-women/"
-KIDS_URL = "http://www.dcrussia.ru/skidki-kids/"
+MEN_URL = 'http://www.dcrussia.ru/skidki-men/'
+WOMAN_URL = 'http://www.dcrussia.ru/skidki-women/'
+KIDS_URL = 'http://www.dcrussia.ru/skidki-kids/'
+THING_BY_ID_URL = 'http://www.dcrussia.ru/'
 
 def get_things(url):
     start_index = 0
@@ -60,7 +61,34 @@ def get_things(url):
     return results
 
 def get_thing_status_by_id(id):
-    return True
+    headers = sql_requests.get_headers(COMPANY)
+    cookies = sql_requests.get_cookies(COMPANY)
+    status = False
+    try:
+        req = THING_BY_ID_URL + str(id) + ".html"
+        response = requests.get(req, headers=headers, cookies=cookies, timeout=15.0)
+        if response.status_code == 200:
+            cookies.update(dict(response.cookies))  # Обновляем куки
+            sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
+            try:
+                soup = BeautifulSoup(response.content, "html.parser")
+                standard_price = soup.find('div', {'class': 'price data-price'}).get('data-standardprice')
+                if standard_price == '-':
+                    status = False
+                else:
+                    status = True
+            except ValueError as err:
+                logging.error(u'' + str(err) + ' Ошибка парсинга HTML')
+    except requests.exceptions.ConnectTimeout as err:
+        logging.error(u'' + str(err) + '')
+    except requests.exceptions.ReadTimeout as err:
+        logging.error(u'' + str(err) + '')
+    except requests.exceptions.ConnectionError as err:
+        logging.error(u'' + str(err) + '')
+    except requests.exceptions.HTTPError as err:
+        logging.error(u'' + str(err) + '')
+    finally:
+        return status
 
 def get_DC_loaded_results(type):
     if type == 'woman':
