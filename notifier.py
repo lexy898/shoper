@@ -31,13 +31,13 @@ def send_message(new_things, type, company):
     except ValueError as err:
         logging.error(u'Ошибка Telegram при отправке сообщения' + str(err))
 
-def format_size(size):
-    result = ""
-    try:
-        for i in range(len(size)):
-            result+= size[i].split('_', 1)[1]+"; "
-    except:
-        result = size
+def format_size(sizes):
+    result = ''
+    for size in sizes:
+        try:
+            result += size.split('_', 1)[1]+"; "
+        except:
+            result += str(size)+"; "
     return result
 
 def discount_count(newPrice, oldPrice):
