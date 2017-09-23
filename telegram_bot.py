@@ -3,7 +3,7 @@ import logging
 import config
 from telebot import types
 import sql_requests
-
+import time
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
 
@@ -14,12 +14,14 @@ bot = telebot.TeleBot(TOKEN)
 brands = sql_requests.get_brands()
 types_of_good = sql_requests.get_types_of_good()
 
+
 # Домашний экран
 def set_home_screen(message):
     markup = types.ReplyKeyboardMarkup()
     markup.row('Мои подписки', 'Бренды')
     markup.row('🚫')
     bot.send_message(message.chat.id, "😌Выбирай:", reply_markup=markup)
+
 
 # Экран выбора типа вещей конкретного бренда
 def set_brand_settings_screen(message):
@@ -33,6 +35,7 @@ def set_brand_settings_screen(message):
         markup.row("✅Отписаться от " + types_of_good[type])
     markup.row(" 🔙 ")
     bot.send_message(message.chat.id, "😌Выбирай:", reply_markup=markup)
+
 
 # Обновление экрана выбора типа вещей конкретного бренда
 def refresh_brand_settings_screen(message):
@@ -52,6 +55,7 @@ def refresh_brand_settings_screen(message):
     except:
         set_home_screen(message)
 
+
 # Экран выбора бренда
 def set_brands_screen(message):
     users_brands = sql_requests.get_users_brands(message.chat.id)
@@ -65,6 +69,7 @@ def set_brands_screen(message):
     markup.row("🏠")
     bot.send_message(message.chat.id, "😌Выбирай бренд:", reply_markup=markup)
 
+
 # Экран выбора бренда из своих подписок
 def set_my_subscriptions_screen(message):
     sql_requests.reset_flag_by_user(message.chat.id)  # сброс флага текущего бренда у пользователя
@@ -74,6 +79,7 @@ def set_my_subscriptions_screen(message):
         markup.row(subscriptions[i])
     markup.row("🏠")
     bot.send_message(message.chat.id, "✔Твои подписки:", reply_markup=markup)
+
 
 def subscribe(message):
     key = message.text[16:]
@@ -87,6 +93,7 @@ def subscribe(message):
         bot.send_message(message.chat.id, "Подписка на " + key + " добавлена!")
         refresh_brand_settings_screen(message)
 
+
 def unsubscribe(message):
     key = message.text[15:]
     if key in brands.values():
@@ -98,14 +105,17 @@ def unsubscribe(message):
         bot.send_message(message.chat.id, "Подписка на " + key + " отменена💔")
         refresh_brand_settings_screen(message)
 
+
 @bot.message_handler(commands=['start', 'help'])
 def handle_start_help(message):
     set_home_screen(message)
+
 
 @bot.message_handler(commands=['exit'])
 def handle_start_help(message):
     markup = types.ReplyKeyboardRemove(selective=False)
     bot.send_message(message.chat.id, "Пока 😜", reply_markup=markup)
+
 
 @bot.message_handler(content_types=['text'])
 def handle_text(message):
@@ -115,7 +125,7 @@ def handle_text(message):
         set_brands_screen(message)
     elif message.text == "🔙":
         set_my_subscriptions_screen(message)
-    elif message.text in brands.values():    #если сообщение равно значению одного из брендов
+    elif message.text in brands.values():  # если сообщение равно значению одного из брендов
         sql_requests.reset_flag_by_user(message.chat.id)
         sql_requests.set_flag_by_user(message.chat.id, message.text)
         set_brand_settings_screen(message)
@@ -131,8 +141,15 @@ def handle_text(message):
     else:
         set_home_screen(message)
 
+
 @bot.message_handler(commands=['chatID'])
 def handle_start_help(message):
     bot.send_message(message.chat.id, message.chat.id)
 
-bot.polling(none_stop=True, interval=0)
+
+while True:
+    try:
+        bot.polling(none_stop=True, interval=0)
+    except:
+        time.sleep(600)
+        continue

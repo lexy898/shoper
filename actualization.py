@@ -30,8 +30,8 @@ def actual_things(company):
                 if not parser_QuickSilver.get_thing_status_by_id(thing[0]):
                     sql_requests.delete_thing_by_id(thing[0])
                     counter +=1
-    write_protocol(str(datetime.now()) + " -------------Удалено " + str(counter) + " Вещей\n")
-    print("Удалено "+str(counter)+" Вещей")
+    write_protocol(str(datetime.now()) + "COMPANY: "+str(company)+" -------------Удалено " + str(counter) + " Вещей\n")
+
 
 def write_protocol(text):
     file = open('protocol.txt', 'a')

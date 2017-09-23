@@ -2,6 +2,7 @@ import parser_HnM
 import parser_Roxy
 import parser_DC
 import parser_QuickSilver
+import parser_Adidas
 import sql_requests
 import config
 import notifier
@@ -18,6 +19,8 @@ def things_update(type, company):
         loaded_things = parser_DC.get_DC_loaded_results(type)
     elif company == 'QuickSilver':
         loaded_things = parser_QuickSilver.get_QuickSilver_loaded_results(type)
+    elif company == 'Adidas':
+        loaded_things = parser_Adidas.get_Adidas_loaded_results(type)
     else:
         print("Компании " + str(company) + " не существует")
         return 0
@@ -28,8 +31,6 @@ def things_update(type, company):
     write_protocol("Загружено: " + str(len(loaded_things_codes)) + " шт.\n")
     new_things_codes = list(set(loaded_things_codes).difference(old_things))
     write_protocol("Новых: " + str(len(new_things_codes)) + " шт.\n")
-    new_things_codes = list(set(new_things_codes)) #Убираем дублированные элементы
-    write_protocol("Новых без дублей: " + str(len(new_things_codes)) + " шт.\n")
     new_things_codes_full = new_things_codes[:] #Эти коды будут записаны в БД
     write_protocol('____________________\n\n')
 
@@ -49,6 +50,8 @@ def things_update(type, company):
             status = parser_DC.get_thing_status_by_id(new_things_codes[i])
         elif company == 'QuickSilver':
             status = parser_QuickSilver.get_thing_status_by_id(new_things_codes[i])
+        elif company == 'Adidas':
+            status = parser_Adidas.get_thing_status_by_id(new_things_codes[i])
         if not status:
             del new_things_codes[i]
         else:
@@ -62,6 +65,7 @@ def things_update(type, company):
     for loaded_thing in loaded_things:
         if (new_things_codes_full.count(loaded_thing[0]) != 0):
             new_things.append(loaded_thing)
+            new_things_codes_full.remove(loaded_thing[0]) #Удаляется из списка для предотвращения отправки возможных дублей
     sql_requests.add_new_things(new_things, company)
 
     '''

@@ -30,7 +30,7 @@ requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
 '''
 
-def get_things(url, endOfUrl):
+def get_things(url):
     global parsed_string
     start_index = 0
     fail_counter = 0
@@ -40,13 +40,13 @@ def get_things(url, endOfUrl):
     cookies = sql_requests.get_cookies(COMPANY)
     try:
         while True:
-            req = url + str(start_index) + endOfUrl
+            req = url + str(start_index) + END_OF_URL
             response = requests.get(req, headers=headers, cookies=cookies)
-            if (response.status_code == 200):
+            if response.status_code == 200:
                 cookies.update(dict(response.cookies)) #Обновляем куки
                 try:
                     parsed_string = json.loads(response.content.decode('utf-8'))
-                    if (parsed_string["results"] == []):
+                    if not parsed_string["results"]:
                         break
                 except ValueError as err:
                     logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
@@ -56,7 +56,7 @@ def get_things(url, endOfUrl):
                 start_index += PAGE_SIZE
                 fail_counter = 0
             else:
-                if (response.status_code == 403 and fail_counter < 5):
+                if response.status_code == 403 and fail_counter < 5:
                     print(response.status_code)
                     fail_counter += 1
                     time.sleep(10)
@@ -76,10 +76,10 @@ def get_things(url, endOfUrl):
         for full_result in loaded_results:
             try:
                 result = [full_result["defaultCode_string"],
-                          full_result.get("productWhitePrice_rub_double",0),
-                          full_result.get("actualPrice_rub_double",0),
+                          full_result.get("productWhitePrice_rub_double", 0),
+                          full_result.get("actualPrice_rub_double", 0),
                           full_result["name_text_ru"],
-                          full_result.get("sizes_ru_string_mv","-"),]
+                          full_result.get("sizes_ru_string_mv", "-"), ]
                 results.append(result)
             except ValueError as err:
                 logging.error(u'' + str(err) + ' Ошибка парсинга: '+full_result)
@@ -91,18 +91,18 @@ def get_thing_status_by_id(id):
     cookies = sql_requests.get_cookies(COMPANY)
     try:
         req = THING_BY_ID_URL + str(id) + "/ru"
-        response = requests.get(req, headers=headers, cookies=cookies, timeout = 15.0)
-        if (response.status_code == 200):
+        response = requests.get(req, headers=headers, cookies=cookies, timeout=15.0)
+        if response.status_code == 200:
             cookies.update(dict(response.cookies))  # Обновляем куки
             sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
             try:
                 parsed_string = json.loads(response.content.decode('utf-8'))
-                if (parsed_string["product"] == []):
+                if not parsed_string["product"]:
                     return False
             except ValueError as err:
                 logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
             product = parsed_string["product"]
-            inStock = product.get("inStock","False")
+            inStock = product.get("inStock", "False")
             print("id: "+str(id)+" inStock: "+str(inStock))
             if inStock:
                 return True
@@ -124,13 +124,13 @@ def get_thing_status_by_id(id):
 
 def get_HnM_loaded_results(type):
     if type == 'men':
-        return get_things(MEN_URL, END_OF_URL)
+        return get_things(MEN_URL)
     elif type == 'woman':
-        return get_things(WOMAN_URL, END_OF_URL)
+        return get_things(WOMAN_URL)
     elif type == 'kids':
-        return get_things(KIDS_URL, END_OF_URL)
+        return get_things(KIDS_URL)
     elif type == 'home':
-        return get_things(HOME_URL, END_OF_URL)
+        return get_things(HOME_URL)
     else:
         print("Параметра " + str(type) + " не существует")
         return 0
