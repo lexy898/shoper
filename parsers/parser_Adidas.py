@@ -1,6 +1,5 @@
 import requests
 import logging
-
 import sql_requests
 import time
 from bs4 import BeautifulSoup
@@ -8,7 +7,7 @@ import config
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
 COMPANY = 'Adidas'
-PAGE_SIZE = 48
+PAGE_SIZE = 120
 
 MEN_URL = 'http://www.adidas.ru/muzhchiny-rasprodazha'
 WOMAN_URL = 'http://www.adidas.ru/zhenschiny-rasprodazha'
@@ -37,18 +36,21 @@ def get_things(url):
                     break
                 for product in products:
                     if 'Распродан' not in product.find('span', {'class': 'badge-text'}).text:
-                        prod_info = product.find('div', {'class', 'product-info-wrapper stack track'})
-                        code = prod_info.find('div', {'class': 'product-info-inner-content clearfix with-badges'}) \
-                            .find('a').get('data-track')
-                        price = format_price(prod_info.find('span', {'class', 'baseprice'}).text)
-                        actual_price = format_price(prod_info.find('span', {'class', 'salesprice discount-price'}).text)
-                        name = prod_info.find('div', {'class': 'product-info-inner-content clearfix with-badges'}) \
-                            .find('a').find('span', {'class': 'title'}).text
-                        if code not in old_things:
-                            thing = [code, price, actual_price, name, get_sizes(code)]
-                        else:
-                            thing = [code, price, actual_price, name, '-']
-                        results.append(thing)
+                        try:
+                            prod_info = product.find('div', {'class', 'product-info-wrapper stack track'})
+                            code = prod_info.find('div', {'class': 'product-info-inner-content clearfix with-badges'}) \
+                                .find('a').get('data-track')
+                            price = format_price(prod_info.find('span', {'class', 'baseprice'}).text)
+                            actual_price = format_price(prod_info.find('span', {'class', 'salesprice discount-price'}).text)
+                            name = prod_info.find('div', {'class': 'product-info-inner-content clearfix with-badges'}) \
+                                .find('a').find('span', {'class': 'title'}).text
+                            if code not in old_things:
+                                thing = [code, price, actual_price, name, get_sizes(code)]
+                            else:
+                                thing = [code, price, actual_price, name, '-']
+                            results.append(thing)
+                        except:
+                            continue
             else:
                 if response.status_code == 403 and fail_counter < 5:
                     print(response.status_code)
@@ -90,6 +92,7 @@ def get_sizes(good_id):
     sizes = []
     try:
         req = THING_BY_ID_URL + str(good_id) + ".html"
+        print(req)
         response = requests.get(req, headers=headers, cookies=cookies, timeout=15.0)
         if response.status_code == 200:
             cookies.update(dict(response.cookies))  # Обновляем куки

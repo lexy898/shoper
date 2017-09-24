@@ -1,8 +1,9 @@
 import telebot
 from telebot import util
 import sql_requests
+import config
 
-TOKEN = "426617203:AAHqKOH-62wRF1XSEFR8NS6372nHMWNR0BE"
+TOKEN = config.get_token()
 bot = telebot.TeleBot(TOKEN)
 allSubscribers = sql_requests.get_all_subscribers()
 print(allSubscribers)

@@ -1,12 +1,10 @@
-import parser_HnM
-import parser_Roxy
-import parser_DC
-import parser_QuickSilver
-import parser_Adidas
-import sql_requests
+from datetime import datetime
+
 import config
 import notifier
-from datetime import datetime
+import sql_requests
+from parsers import parser_Adidas, parser_DC, parser_Roxy, parser_HnM, parser_QuickSilver
+
 
 def things_update(type, company):
     old_things = sql_requests.get_things(company)

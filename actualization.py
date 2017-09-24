@@ -1,10 +1,9 @@
-import parser_HnM
-import parser_Roxy
-import parser_DC
-import parser_QuickSilver
 from datetime import datetime
-import sql_requests
+
 import config
+import sql_requests
+from parsers import parser_DC, parser_Roxy, parser_HnM, parser_QuickSilver
+
 
 def actual_things(company):
     things = sql_requests.get_things_with_date(company)

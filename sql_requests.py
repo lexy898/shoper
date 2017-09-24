@@ -52,7 +52,7 @@ def add_new_things(new_things, company):
                            + str(thing[1]) + ","
                            + str(thing[2]) + ",\""
                            + str(thing[3]).replace('"', '') + "\",\""
-                           + str(thing[4]) + "\","
+                           + str(thing[4]).replace('"', '') + "\","
                            + str(company) + ",\""
                            + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "\")")
             conn.commit()

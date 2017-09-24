@@ -1,6 +1,3 @@
-import parser_HnM
-import sql_requests
-import config
 import os
 
 '''
