@@ -14,6 +14,7 @@ KIDS_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm
 HOME_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=home_all&start='
 END_OF_URL = '&pageSize=30&sale_boolean=true'
 THING_BY_ID_URL = 'https://app2.hm.com/hmwebservices/service/article/get-article-by-code/hm-russia/Online/'
+THING_URL = 'http://www2.hm.com'
 '''
 try:
     import http.client as http_client
@@ -75,22 +76,23 @@ def get_things(url):
     finally:
         for full_result in loaded_results:
             try:
-                result = [full_result["defaultCode_string"],
-                          full_result.get("productWhitePrice_rub_double", 0),
-                          full_result.get("actualPrice_rub_double", 0),
-                          full_result["name_text_ru"],
-                          full_result.get("sizes_ru_string_mv", "-"), ]
-                results.append(result)
+                code = full_result["defaultCode_string"]
+                price = full_result.get("productWhitePrice_rub_double", 0)
+                actual_price = full_result.get("actualPrice_rub_double", 0)
+                name = full_result["name_text_ru"]
+                size = full_result.get("sizes_ru_string_mv", "-")
+                link = THING_URL + full_result['linkPdp']
+                results.append([code, price, actual_price, name, size, link])
             except ValueError as err:
                 logging.error(u'' + str(err) + ' Ошибка парсинга: '+full_result)
         return results
 
-def get_thing_status_by_id(id):
+def get_thing_status_by_id(thing_id):
     global parsed_string
     headers = sql_requests.get_headers(COMPANY)
     cookies = sql_requests.get_cookies(COMPANY)
     try:
-        req = THING_BY_ID_URL + str(id) + "/ru"
+        req = THING_BY_ID_URL + str(thing_id) + "/ru"
         response = requests.get(req, headers=headers, cookies=cookies, timeout=15.0)
         if response.status_code == 200:
             cookies.update(dict(response.cookies))  # Обновляем куки
@@ -103,7 +105,7 @@ def get_thing_status_by_id(id):
                 logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
             product = parsed_string["product"]
             inStock = product.get("inStock", "False")
-            print("id: "+str(id)+" inStock: "+str(inStock))
+            print("id: "+str(thing_id)+" inStock: "+str(inStock))
             if inStock:
                 return True
             else:

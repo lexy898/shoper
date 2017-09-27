@@ -11,7 +11,7 @@ PAGE_SIZE = 48
 
 WOMAN_URL = 'http://www.roxy-russia.ru/skidki-women/'
 KIDS_URL = 'http://www.roxy-russia.ru/skidki-kids/'
-THING_BY_ID_URL = config.get_product_page(COMPANY)
+
 
 def get_things(url):
     start_index = 0
@@ -35,13 +35,14 @@ def get_things(url):
                     break
                 for product in products:
                     code = product.find('div', {'class': 'image thumbnail productimage'}).get('data-productid')
-                    price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-standardprice').replace("-","0")
-                    actual_price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-salesprice').replace("-","0")
+                    price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-standardprice').replace("-", "0")
+                    actual_price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get('data-salesprice').replace("-", "0")
                     name = product.find('div', {'class': 'name'}).find('a').text
+                    link = product.find('div', {'class': 'name'}).find('a').get('href')
                     if code not in old_things:
-                        thing = [code, price, actual_price, name,get_sizes(code)]
+                        thing = [code, price, actual_price, name, get_sizes(link), link]
                     else:
-                        thing = [code, price, actual_price, name, '-']
+                        thing = [code, price, actual_price, name, '-', link]
                     results.append(thing)
             else:
                 if response.status_code == 403 and fail_counter < 5:
@@ -65,13 +66,12 @@ def get_things(url):
         print("Вещей загружено: " + str(len(results)))
         return results
 
-def get_thing_status_by_id(id):
+def get_thing_status_by_id(thing_id):
     headers = sql_requests.get_headers(COMPANY)
     cookies = sql_requests.get_cookies(COMPANY)
     status = False
     try:
-        req = THING_BY_ID_URL + str(id) + ".html"
-        response = requests.get(req, headers=headers, cookies=cookies, timeout=15.0)
+        response = requests.get(sql_requests.get_link_by_id(thing_id), headers=headers, cookies=cookies, timeout=15.0)
         if response.status_code == 200:
             cookies.update(dict(response.cookies))  # Обновляем куки
             sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
@@ -95,13 +95,12 @@ def get_thing_status_by_id(id):
     finally:
         return status
 
-def get_sizes(good_id):
+def get_sizes(link):
     headers = sql_requests.get_headers(COMPANY)
     cookies = sql_requests.get_cookies(COMPANY)
     sizes = []
     try:
-        req = THING_BY_ID_URL + str(good_id) + ".html"
-        response = requests.get(req, headers=headers, cookies=cookies, timeout=15.0)
+        response = requests.get(link, headers=headers, cookies=cookies, timeout=15.0)
         if response.status_code == 200:
             cookies.update(dict(response.cookies))  # Обновляем куки
             sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД

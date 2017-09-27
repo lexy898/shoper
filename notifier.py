@@ -22,7 +22,7 @@ def send_message(new_things, type, company):
         text_message += "Скидка: "+str(discount_count(thing[2], thing[1])) + "%\n"
         if thing[4] != '-':
             text_message += "Размеры: " + format_size(thing[4]) + "\n"
-        text_message += config.get_product_page(company) + thing[0] + ".html\n\n"
+        text_message += thing[5]+"\n\n"
     try:
         splitted_text = util.split_string(text_message, 3000)
         for text in splitted_text:

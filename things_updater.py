@@ -3,7 +3,7 @@ from datetime import datetime
 import config
 import notifier
 import sql_requests
-from parsers import parser_Adidas, parser_DC, parser_Roxy, parser_HnM, parser_QuickSilver
+from parsers import parser_Adidas, parser_DC, parser_Roxy, parser_HnM, parser_QuickSilver, parser_Nike
 
 
 def things_update(type, company):
@@ -19,6 +19,8 @@ def things_update(type, company):
         loaded_things = parser_QuickSilver.get_QuickSilver_loaded_results(type)
     elif company == 'Adidas':
         loaded_things = parser_Adidas.get_Adidas_loaded_results(type)
+    elif company == 'Nike':
+        loaded_things = parser_Nike.get_Nike_loaded_results(type)
     else:
         print("Компании " + str(company) + " не существует")
         return 0
@@ -33,10 +35,21 @@ def things_update(type, company):
     write_protocol('____________________\n\n')
 
     '''
-    По каждому коду в списке проверяется актуальность вещи
-    Если parserHnM.get_thing_status_by_id() возвращает Fаlse,
-    то код удаляется из списка
+    Из всех загруженных вещей записываем в БД только те, 
+    коды которых имеются в списке "new_things_codes_full"
     '''
+    new_things = [] #Список будет содержать полные записи новых вещей
+    for loaded_thing in loaded_things:
+        if (new_things_codes_full.count(loaded_thing[0]) != 0):
+            new_things.append(loaded_thing)
+            new_things_codes_full.remove(loaded_thing[0]) #Удаляется из списка для предотвращения отправки возможных дублей
+    sql_requests.add_new_things(new_things, company)
+
+    '''
+       По каждому коду в списке проверяется актуальность вещи
+       Если parserHnM.get_thing_status_by_id() возвращает Fаlse,
+       то код удаляется из списка
+       '''
     i = 0
     while i < len(new_things_codes):
         status = False
@@ -50,24 +63,16 @@ def things_update(type, company):
             status = parser_QuickSilver.get_thing_status_by_id(new_things_codes[i])
         elif company == 'Adidas':
             status = parser_Adidas.get_thing_status_by_id(new_things_codes[i])
+        elif company == 'Nike':
+            status = parser_Nike.get_thing_status_by_id(new_things_codes[i])
         if not status:
             del new_things_codes[i]
         else:
             i += 1
     print("Новых актуальных: " + str(len(new_things_codes)) + " шт.")
-    '''
-    Из всех загруженных вещей записываем в БД только те, 
-    коды которых имеются в списке "new_things_codes_full"
-    '''
-    new_things = [] #Список будет содержать полные записи новых вещей
-    for loaded_thing in loaded_things:
-        if (new_things_codes_full.count(loaded_thing[0]) != 0):
-            new_things.append(loaded_thing)
-            new_things_codes_full.remove(loaded_thing[0]) #Удаляется из списка для предотвращения отправки возможных дублей
-    sql_requests.add_new_things(new_things, company)
 
     '''
-    Убираем из new_things все вещи, которые е прошли проверку на актуальность
+    Убираем из new_things все вещи, которые не прошли проверку на актуальность
     '''
     i = 0
     while i < len(new_things):

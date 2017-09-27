@@ -7,30 +7,6 @@ logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=l
 _DB_PATH = str(os.getcwd())+"/h&m.sqlite"
 
 
-# Сохранить вещи в БД
-def save_things(results, company):
-    default = "-"
-    try:
-        conn = sqlite3.connect(_DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM COMPANY WHERE company_name ='" + str(company) + "'")
-        company = cursor.fetchone()[0]
-        for i in range(len(results)):
-            thing = results[i]
-            cursor.execute("INSERT INTO result VALUES (\""
-                           + str(thing["defaultCode_string"]) + "\","
-                           + str(thing["productWhitePrice_rub_double"]) + ","
-                           + str(thing["actualPrice_rub_double"]) + ",\""
-                           + str(thing["name_text_ru"]).replace('"', '') + "\",\""
-                           + str(thing.get("sizes_ru_string_mv", default)) + "\", \""
-                           + str(company) + ","
-                           + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "\")")
-            conn.commit()
-        conn.close()
-    except sqlite3.DatabaseError as err:
-        print("Error: ", err)
-
-
 # Добавить новые вещи в БД
 def add_new_things(new_things, company):
     try:
@@ -40,13 +16,14 @@ def add_new_things(new_things, company):
         company = cursor.fetchone()[0]
         for thing in new_things:
             print("INSERT INTO result VALUES (\""
-                  + str(thing[0]) + "\","
-                  + str(thing[1]) + ","
-                  + str(thing[2]) + ",\""
-                  + str(thing[3]).replace('"', '') + "\",\""
-                  + str(thing[4]) + "\","
-                  + str(company) + ",\""
-                  + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "\")")
+                           + str(thing[0]) + "\","
+                           + str(thing[1]) + ","
+                           + str(thing[2]) + ",\""
+                           + str(thing[3]).replace('"', '') + "\",\""
+                           + str(thing[4]).replace('"', '') + "\","
+                           + str(company) + ",\""
+                           + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "\", \""
+                           + str(thing[5]) + "\")")
             cursor.execute("INSERT INTO result VALUES (\""
                            + str(thing[0]) + "\","
                            + str(thing[1]) + ","
@@ -54,7 +31,8 @@ def add_new_things(new_things, company):
                            + str(thing[3]).replace('"', '') + "\",\""
                            + str(thing[4]).replace('"', '') + "\","
                            + str(company) + ",\""
-                           + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "\")")
+                           + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "\", \""
+                           + str(thing[5]) + "\")")
             conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:
@@ -449,3 +427,18 @@ def get_description_by_type_of_good(type):
         return result
     except sqlite3.DatabaseError as err:
         logging.error(u'' + str(err) + '')
+
+def get_link_by_id(thing_id):
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT link FROM result WHERE defaultCode_string = \'" + str(thing_id) + "\'")
+        link = cursor.fetchone()
+        conn.close()
+        return link[0]
+    except sqlite3.DatabaseError as err:
+        logging.error(u'' + str(err) + '')
+    except TypeError as err:
+        logging.error(u'' + str(err) + '')
+        return ''
+
