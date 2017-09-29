@@ -88,41 +88,36 @@ def get_things(url):
         return results
 
 def get_thing_status_by_id(thing_id):
-    global parsed_string
     headers = sql_requests.get_headers(COMPANY)
     cookies = sql_requests.get_cookies(COMPANY)
+    status = True
     try:
-        req = THING_BY_ID_URL + str(thing_id) + "/ru"
+        req = THING_BY_ID_URL + str(thing_id) + "/ru"  # URL для API
         response = requests.get(req, headers=headers, cookies=cookies, timeout=15.0)
         if response.status_code == 200:
             cookies.update(dict(response.cookies))  # Обновляем куки
             sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
             try:
                 parsed_string = json.loads(response.content.decode('utf-8'))
-                if not parsed_string["product"]:
-                    return False
-            except ValueError as err:
+                if parsed_string["product"].get("inStock", "False"):
+                    status = True
+                else:
+                    status = False
+            except KeyError as err:
                 logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
-            product = parsed_string["product"]
-            inStock = product.get("inStock", "False")
-            print("id: "+str(thing_id)+" inStock: "+str(inStock))
-            if inStock:
-                return True
-            else:
-                return False
-
+                status = False
+        elif response.status_code == 404:
+            status = False
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
-        return False
     except requests.exceptions.ReadTimeout as err:
         logging.error(u'' + str(err) + '')
-        return False
     except requests.exceptions.ConnectionError as err:
         logging.error(u'' + str(err) + '')
-        return False
     except requests.exceptions.HTTPError as err:
         logging.error(u'' + str(err) + '')
-        return False
+    finally:
+        return status
 
 def get_HnM_loaded_results(type):
     if type == 'men':

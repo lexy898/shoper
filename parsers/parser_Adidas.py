@@ -129,8 +129,8 @@ def get_thing_status_by_id(thing_id):
             sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
             try:
                 soup = BeautifulSoup(response.content, "html.parser")
-                sale_price = soup.find('span', {'class': 'sale-price discounted'}).get('data-sale-price')
-            except:
+                soup.find('span', {'class': 'sale-price discounted'}).get('data-sale-price')
+            except AttributeError:
                 status = False
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')

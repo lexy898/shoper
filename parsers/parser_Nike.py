@@ -14,6 +14,7 @@ MEN_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_loc
 BOYS_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=мальчики-распродажа/47Z7pv&pn='
 GIRLS_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=-/47Z7pw&pn='
 
+
 def get_things(url):
     start_index = 1
     fail_counter = 0
@@ -28,12 +29,12 @@ def get_things(url):
             req = url + str(start_index)
             response = requests.get(req, headers=headers, cookies=cookies)
             if response.status_code == 200:
-                cookies.update(dict(response.cookies)) #Обновляем куки
+                cookies.update(dict(response.cookies))  # Обновляем куки
                 try:
                     parsed_string = json.loads(response.content.decode('utf-8'))
                     if not parsed_string.get("sections"):
                         break
-                except ValueError as err:
+                except KeyError as err:
                     logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
                     break
                 loaded_results.extend(parsed_string['sections'][0]['products'])
@@ -47,7 +48,7 @@ def get_things(url):
                     time.sleep(10)
                 else:
                     break
-        sql_requests.set_cookies(COMPANY, str(cookies)) #Сохраняем обновленные куки в БД
+        sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
 
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
@@ -63,7 +64,7 @@ def get_things(url):
                 code = get_thing_code(full_result['pdpUrl'])
                 price = format_price(full_result['overriddenLocalPrice'])
                 actual_price = format_price(full_result['overriddenEmployeePrice'])
-                name = full_result['subtitle']+' '+full_result['title']
+                name = full_result['subtitle'] + ' ' + full_result['title']
                 link = full_result['pdpUrl']
                 if code not in old_things:
                     size = get_sizes(link)
@@ -71,8 +72,9 @@ def get_things(url):
                     size = '-'
                 results.append([code, price, actual_price, name, size, link])
             except ValueError as err:
-                logging.error(u'' + str(err) + ' Ошибка парсинга: '+full_result)
+                logging.error(u'' + str(err) + ' Ошибка парсинга: ' + full_result)
         return results
+
 
 def get_sizes(link):
     headers = sql_requests.get_headers(COMPANY)
@@ -90,8 +92,8 @@ def get_sizes(link):
                 for size in sizes_list:
                     if not size.get('class'):
                         sizes.append(format_size(size.text))
-            except ValueError as err:
-                logging.error(u'' + str(err) + ' Ошибка парсинга HTML')
+            except AttributeError as err:
+                logging.error(u'' + str(err))
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
     except requests.exceptions.ReadTimeout as err:
@@ -103,8 +105,10 @@ def get_sizes(link):
     finally:
         return sizes
 
+
 def get_thing_code(link):
-    return link[link.rfind('pgid-')+len('pgid-'):]
+    return link[link.rfind('pid'):]
+
 
 def format_price(price):
     result = []
@@ -116,8 +120,10 @@ def format_price(price):
     except:
         return ''
 
+
 def format_size(size):
     return size.replace('\n', '').replace('\t', '').replace(' ', '')
+
 
 def get_thing_status_by_id(thing_id):
     headers = sql_requests.get_headers(COMPANY)
@@ -131,10 +137,16 @@ def get_thing_status_by_id(thing_id):
         elif response.status_code == 200:
             cookies.update(dict(response.cookies))  # Обновляем куки
             sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
-            try:
-                soup = BeautifulSoup(response.content, "html.parser")
-                soup.find('span', {'class': 'exp-pdp-overridden-local-price'})
-            except:
+            soup = BeautifulSoup(response.content, "html.parser")
+            '''
+            Если отсутствует элемент "НЕТ В НАЛИЧИИ", то проверяется наличие элемента скидочной цены
+            '''
+            if not soup.find('div', {'class': 'exp-pdp-nostock-text'}):
+                try:
+                    soup.find('span', {'class': 'exp-pdp-overridden-local-price'}).text
+                except AttributeError:
+                    status = False
+            else:
                 status = False
     except requests.exceptions.ConnectTimeout as err:
         logging.error(u'' + str(err) + '')
@@ -146,6 +158,7 @@ def get_thing_status_by_id(thing_id):
         logging.error(u'' + str(err) + '')
     finally:
         return status
+
 
 def get_Nike_loaded_results(type):
     if type == 'men':
