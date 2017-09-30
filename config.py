@@ -15,6 +15,3 @@ def get_days_actualization():
 
 def get_notify_status(company):
     return conf.get("notify", company)
-
-def get_product_page(company):
-    return conf.get("productPage", company)

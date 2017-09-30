@@ -18,21 +18,23 @@ def add_new_things(new_things, company):
             print("INSERT INTO result VALUES (\""
                            + str(thing[0]) + "\","
                            + str(thing[1]) + ","
-                           + str(thing[2]) + ",\""
-                           + str(thing[3]).replace('"', '') + "\",\""
+                           + str(thing[2]) + ", \""
+                           + str(thing[3]).replace('"', '') + "\", \""
                            + str(thing[4]).replace('"', '') + "\","
-                           + str(company) + ",\""
+                           + str(company) + ", \""
                            + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "\", \""
-                           + str(thing[5]) + "\")")
+                           + str(thing[5]) + "\", \""
+                           + str(thing[6]) + "\")")
             cursor.execute("INSERT INTO result VALUES (\""
                            + str(thing[0]) + "\","
                            + str(thing[1]) + ","
-                           + str(thing[2]) + ",\""
-                           + str(thing[3]).replace('"', '') + "\",\""
+                           + str(thing[2]) + ", \""
+                           + str(thing[3]).replace('"', '') + "\", \""
                            + str(thing[4]).replace('"', '') + "\","
-                           + str(company) + ",\""
+                           + str(company) + ", \""
                            + datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S") + "\", \""
-                           + str(thing[5]) + "\")")
+                           + str(thing[5]) + "\", \""
+                           + str(thing[6]) + "\")")
             conn.commit()
         conn.close()
     except sqlite3.DatabaseError as err:

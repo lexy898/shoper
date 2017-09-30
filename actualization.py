@@ -2,7 +2,7 @@ from datetime import datetime
 
 import config
 import sql_requests
-from parsers import parser_DC, parser_Roxy, parser_HnM, parser_QuickSilver
+from parsers import parser_DC, parser_Roxy, parser_HnM, parser_QuickSilver, parser_Adidas, parser_Nike
 
 
 def actual_things(company):
@@ -29,6 +29,14 @@ def actual_things(company):
                 if not parser_QuickSilver.get_thing_status_by_id(thing[0]):
                     sql_requests.delete_thing_by_id(thing[0])
                     counter +=1
+            elif company == 'Adidas':
+                if not parser_Adidas.get_thing_status_by_id(thing[0]):
+                    sql_requests.delete_thing_by_id(thing[0])
+                    counter +=1
+            elif company == 'Nike':
+                if not parser_Nike.get_thing_status_by_id(thing[0]):
+                    sql_requests.delete_thing_by_id(thing[0])
+                    counter +=1
     write_protocol(str(datetime.now()) + "COMPANY: "+str(company)+" -------------Удалено " + str(counter) + " Вещей\n")
 
 
@@ -41,3 +49,5 @@ actual_things('H&M')
 actual_things('Roxy')
 actual_things('DC')
 actual_things('QuickSilver')
+actual_things('Adidas')
+actual_things('Nike')

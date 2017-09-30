@@ -34,9 +34,6 @@ def send_message(new_things, type, company):
 def format_size(sizes):
     result = ''
     for size in sizes:
-        try:
-            result += size.split('_', 1)[1]+"; "
-        except:
             result += str(size)+"; "
     return result
 

@@ -8,11 +8,10 @@ logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=l
 COMPANY = 'H&M'
 PAGE_SIZE = 30
 
-WOMAN_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=ladies_all&start='
-MEN_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=men_all&start='
-KIDS_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=kids_all&start='
-HOME_URL = 'https://app2.hm.com/hmwebservices/service/app/productList?storeId=hm-russia&catalogVersion=Online&locale=ru&categories=home_all&start='
-END_OF_URL = '&pageSize=30&sale_boolean=true'
+WOMAN_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:ladies_all:sale:true&currentPage='
+MEN_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:men_all:sale:true&currentPage='
+KIDS_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:kids_all:sale:true&currentPage='
+HOME_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:home_all:sale:true&currentPage='
 THING_BY_ID_URL = 'https://app2.hm.com/hmwebservices/service/article/get-article-by-code/hm-russia/Online/'
 THING_URL = 'http://www2.hm.com'
 '''
@@ -39,9 +38,12 @@ def get_things(url):
     results = []
     headers = sql_requests.get_headers(COMPANY)
     cookies = sql_requests.get_cookies(COMPANY)
+    old_things = sql_requests.get_things(
+        COMPANY)  # Подгружаем записаные в БД вещи, чтоб подгружать размер только для новых вещей
     try:
         while True:
-            req = url + str(start_index) + END_OF_URL
+            req = url + str(start_index) + '&pageSize=' + str(PAGE_SIZE)
+            print(req)
             response = requests.get(req, headers=headers, cookies=cookies)
             if response.status_code == 200:
                 cookies.update(dict(response.cookies)) #Обновляем куки
@@ -53,8 +55,8 @@ def get_things(url):
                     logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
                     break
                 loaded_results.extend(parsed_string["results"])
-                print("COMPANY: " + COMPANY + " | page: " + str(start_index / PAGE_SIZE + 1))
-                start_index += PAGE_SIZE
+                print("COMPANY: " + COMPANY + " | page: " + str(start_index + 1))
+                start_index += 1
                 fail_counter = 0
             else:
                 if response.status_code == 403 and fail_counter < 5:
@@ -76,13 +78,18 @@ def get_things(url):
     finally:
         for full_result in loaded_results:
             try:
-                code = full_result["defaultCode_string"]
-                price = full_result.get("productWhitePrice_rub_double", 0)
-                actual_price = full_result.get("actualPrice_rub_double", 0)
-                name = full_result["name_text_ru"]
-                size = full_result.get("sizes_ru_string_mv", "-")
+                code = full_result["articleCodes"][0]
+                price = full_result['whitePrice'].get('value', 0)
+                actual_price = full_result['redPrice'].get('value', 0)
+                name = full_result['name']
+                size = get_sizes(full_result['variantSizes'])
                 link = THING_URL + full_result['linkPdp']
-                results.append([code, price, actual_price, name, size, link])
+                if code not in old_things:
+                    status = get_thing_status_by_id(code)
+                    thing = [code, price, actual_price, name, size, link, status]
+                else:
+                    thing = [code, price, actual_price, name, size, link, True]
+                results.append(thing)
             except ValueError as err:
                 logging.error(u'' + str(err) + ' Ошибка парсинга: '+full_result)
         return results
@@ -93,6 +100,7 @@ def get_thing_status_by_id(thing_id):
     status = True
     try:
         req = THING_BY_ID_URL + str(thing_id) + "/ru"  # URL для API
+        print(req)
         response = requests.get(req, headers=headers, cookies=cookies, timeout=15.0)
         if response.status_code == 200:
             cookies.update(dict(response.cookies))  # Обновляем куки
@@ -118,6 +126,15 @@ def get_thing_status_by_id(thing_id):
         logging.error(u'' + str(err) + '')
     finally:
         return status
+
+def get_sizes(sizes_list):
+    sizes = []
+    try:
+        for size in sizes_list:
+            sizes.append(size.get('filterCode', '-'))
+    finally:
+        return sizes
+
 
 def get_HnM_loaded_results(type):
     if type == 'men':
