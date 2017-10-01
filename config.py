@@ -15,3 +15,6 @@ def get_days_actualization():
 
 def get_notify_status(company):
     return conf.get("notify", company)
+
+def get_timeout():
+    return float(conf.get("timeout", "timeout"))

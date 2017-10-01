@@ -7,6 +7,7 @@ from parsers import parser_DC, parser_Roxy, parser_HnM, parser_QuickSilver, pars
 
 def actual_things(company):
     things = sql_requests.get_things_with_date(company)
+    print(len(things))
     counter = 0
     now = datetime.now()
     for thing in things:
