@@ -130,6 +130,8 @@ def get_thing_status_by_page(thing_page):
             try:
                 soup = BeautifulSoup(thing_page.content, "html.parser")
                 soup.find('span', {'class': 'sale-price discounted'}).get('data-sale-price')
+                if 'Распродан' in soup.find('span', {'class': 'badge-text'}).text:
+                    status = False
             except AttributeError:
                 status = False
     finally:
