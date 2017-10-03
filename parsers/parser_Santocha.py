@@ -19,20 +19,23 @@ class ParserSantocha(base_parser.BaseParser):
         if not products:
             return results
         for product in products:
-            code = product.find('div', {'class': 'image thumbnail productimage'}).get('data-productid')
-            price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get(
-                'data-standardprice').replace("-", "0")
-            actual_price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get(
-                'data-salesprice').replace("-", "0")
-            name = product.find('div', {'class': 'name'}).find('a').text
-            link = product.find('div', {'class': 'name'}).find('a').get('href')
-            if code not in old_things:
-                thing_page = self._get_thing_page(link)
-                thing = [code, price, actual_price, name, self._get_sizes_by_page(thing_page), link,
-                         self._get_thing_status_by_page(thing_page)]
-            else:
-                thing = [code, price, actual_price, name, '-', link, False]
-            results.append(thing)
+            try:
+                code = product.find('div', {'class': 'image thumbnail productimage'}).get('data-productid')
+                price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get(
+                    'data-standardprice').replace("-", "0")
+                actual_price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get(
+                    'data-salesprice').replace("-", "0")
+                name = product.find('div', {'class': 'name'}).find('a').text
+                link = product.find('div', {'class': 'name'}).find('a').get('href')
+                if code not in old_things:
+                    thing_page = self._get_thing_page(link)
+                    thing = [code, price, actual_price, name, self._get_sizes_by_page(thing_page), link,
+                             self._get_thing_status_by_page(thing_page)]
+                else:
+                    thing = [code, price, actual_price, name, '-', link, False]
+                results.append(thing)
+            except ValueError:
+                continue
         return results
 
     def _get_sizes_by_page(self, thing_page):

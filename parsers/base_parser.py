@@ -13,7 +13,7 @@ class BaseParser:
         self._types_dict = {}
 
     # Метод для получения всех загруженных вещей всех имеющихся типов
-    def _get_loaded_results(self):
+    def get_loaded_results(self):
         loaded_results = []
         for key in self._types_dict:
             loaded_results.extend(self.get_things(self._types_dict.get(key)))
@@ -22,6 +22,7 @@ class BaseParser:
         headers = sql_requests.get_headers(self._COMPANY)
         cookies = sql_requests.get_cookies(self._COMPANY)
         try:
+            print(link)
             response = requests.get(link, headers=headers, cookies=cookies, timeout=config.get_timeout())
             if response.status_code == 200:
                 cookies.update(dict(response.cookies))  # Обновляем куки
@@ -54,6 +55,7 @@ class BaseParser:
             while True:
                 print("COMPANY: " + self._COMPANY + " | page: " + str(start_index / self._PAGE_SIZE + 1))
                 req = self._create_req(url, start_index)
+                print(req)
                 response = requests.get(req, headers=headers, cookies=cookies, timeout=config.get_timeout())
                 if response.status_code == 200:
                     cookies.update(dict(response.cookies))  # Обновляем куки
