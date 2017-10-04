@@ -87,7 +87,7 @@ class ParserNike(base_parser.BaseParser):
                     sizes_list = soup.find('select', {'name': 'skuAndSize'}).find_all('option')
                     for size in sizes_list:
                         if not size.get('class'):
-                            sizes.append(format_size(size.text))
+                            sizes.append(self._format_size(size.text))
                 except AttributeError as err:
                     logging.error(u'' + str(err))
         finally:

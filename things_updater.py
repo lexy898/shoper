@@ -6,25 +6,19 @@ import sql_requests
 from parsers import parser_Adidas, parser_DC, parser_Roxy, parser_HnM, parser_QuickSilver, parser_Nike
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
-
+companies_dict = {
+    'H&M': parser_HnM.ParserHnM(),
+    'Roxy': parser_Roxy.ParserRoxy(),
+    'QuickSilver': parser_QuickSilver.ParserQuickSilver(),
+    'DC': parser_DC.ParserDC(),
+    'Adidas': parser_Adidas.ParserAdidas(),
+    'Nike': parser_Nike.ParserNike()
+}
 def things_update(type, company):
     old_things = sql_requests.get_things(company)
     loaded_things = []
-    if company == 'H&M':
-        loaded_things = parser_HnM.get_HnM_loaded_results(type)
-    elif company == 'Roxy':
-        loaded_things = parser_Roxy.get_Roxy_loaded_results(type)
-    elif company == 'DC':
-        loaded_things = parser_DC.get_DC_loaded_results(type)
-    elif company == 'QuickSilver':
-        loaded_things = parser_QuickSilver.get_QuickSilver_loaded_results(type)
-    elif company == 'Adidas':
-        loaded_things = parser_Adidas.get_Adidas_loaded_results(type)
-    elif company == 'Nike':
-        loaded_things = parser_Nike.get_Nike_loaded_results(type)
-    else:
-        print("Компании " + str(company) + " не существует")
-        return 0
+    parser = companies_dict.get(company)
+    loaded_things = parser.get_loaded_results(type)
     loaded_things_codes = []
     for thing in loaded_things:
         loaded_things_codes.append(thing[0])

@@ -13,12 +13,12 @@ class BaseParser:
         self._START_INDEX = 0
         self._types_dict = {}
 
-    # Метод для получения всех загруженных вещей всех имеющихся типов
-    def get_loaded_results(self):
+    # Метод для получения всех загруженных вещей определенного типа типов
+    def get_loaded_results(self, type):
         loaded_results = []
-        for key in self._types_dict:
-            print('TYPE: '+key)
-            loaded_results.extend(self.get_things(self._types_dict.get(key)))
+        print('TYPE: '+type)
+        loaded_results.extend(self.get_things(self._types_dict.get(type)))
+        return loaded_results
 
     def _get_thing_page(self, link):
         headers = sql_requests.get_headers(self._COMPANY)
@@ -66,7 +66,7 @@ class BaseParser:
                         break
                     results.extend(things)
                 sql_requests.set_cookies(self._COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
-                start_index += self._PAGE_SIZE
+                start_index = self._increment_start_index(start_index)
         except requests.exceptions.ConnectTimeout as err:
             logging.error(u'' + str(err) + '')
         except requests.exceptions.ReadTimeout as err:
@@ -89,3 +89,7 @@ class BaseParser:
     # Метод служит для вывода на экран текущей страницы, компании, типа вещей
     def _current_info(self, start_index):
         print("COMPANY: " + self._COMPANY + " | page: " + str(start_index / self._PAGE_SIZE + 1))
+
+    #Метод для инкременции индекса для пагинации
+    def _increment_start_index(self, start_index):
+        return start_index + self._PAGE_SIZE

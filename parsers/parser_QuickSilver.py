@@ -1,6 +1,6 @@
 from parsers import parser_Santocha
 
-class ParserRoxy(parser_Santocha.ParserSantocha):
+class ParserQuickSilver(parser_Santocha.ParserSantocha):
     def __init__(self):
         super().__init__()
         self._COMPANY = 'QuickSilver'

@@ -1,150 +1,117 @@
+from parsers import base_parser
 import requests
 import json
 import logging
-import time
 import sql_requests
+import config
 
-logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
-COMPANY = 'H&M'
-PAGE_SIZE = 30
+class ParserHnM(base_parser.BaseParser):
+    def __init__(self):
+        super().__init__()
+        logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR,
+                            filename=u'log.txt')
+        self._PAGE_SIZE = 30
+        self._COMPANY = 'H&M'
 
-WOMAN_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:ladies_all:sale:true&currentPage='
-MEN_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:men_all:sale:true&currentPage='
-KIDS_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:kids_all:sale:true&currentPage='
-HOME_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:home_all:sale:true&currentPage='
-THING_BY_ID_URL = 'https://app2.hm.com/hmwebservices/service/article/get-article-by-code/hm-russia/Online/'
-THING_URL = 'http://www2.hm.com'
-'''
-try:
-    import http.client as http_client
-except ImportError:
-    # Python 2
-    import httplib as http_client
-http_client.HTTPConnection.debuglevel = 1
+        self._WOMAN_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:ladies_all:sale:true&currentPage='
+        self._MEN_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:men_all:sale:true&currentPage='
+        self._KIDS_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:kids_all:sale:true&currentPage='
+        self._HOME_URL = 'https://app2.hm.com/hmwebservices/service/products/plp/hm-russia/Online/ru?q=:stock:category:home_all:sale:true&currentPage='
 
-# You must initialize logging, otherwise you'll not see debug output.
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
-requests_log = logging.getLogger("requests.packages.urllib3")
-requests_log.setLevel(logging.DEBUG)
-requests_log.propagate = True
-'''
+        self._THING_BY_ID_URL = 'https://app2.hm.com/hmwebservices/service/article/get-article-by-code/hm-russia/Online/'
+        self._THING_URL = 'http://www2.hm.com'
 
-def get_things(url):
-    global parsed_string
-    start_index = 0
-    fail_counter = 0
-    loaded_results = []
-    results = []
-    headers = sql_requests.get_headers(COMPANY)
-    cookies = sql_requests.get_cookies(COMPANY)
-    old_things = sql_requests.get_things(
-        COMPANY)  # Подгружаем записаные в БД вещи, чтоб подгружать размер только для новых вещей
-    try:
-        while True:
-            req = url + str(start_index) + '&pageSize=' + str(PAGE_SIZE)
-            print(req)
-            response = requests.get(req, headers=headers, cookies=cookies)
-            if response.status_code == 200:
-                cookies.update(dict(response.cookies)) #Обновляем куки
+        self._types_dict = {
+            'woman': self._WOMAN_URL,
+            'men': self._MEN_URL,
+            'kids': self._KIDS_URL,
+            'home': self._HOME_URL
+        }
+
+    def _get_thing_status_by_page(self, thing_page):
+        status = True
+        try:
+            if thing_page.status_code == 200:
                 try:
-                    parsed_string = json.loads(response.content.decode('utf-8'))
-                    if not parsed_string["results"]:
-                        break
-                except ValueError as err:
+                    parsed_string = json.loads(thing_page.content.decode('utf-8'))
+                    if parsed_string["product"].get("inStock", "False"):
+                        status = True
+                    else:
+                        status = False
+                except KeyError as err:
                     logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
-                    break
-                loaded_results.extend(parsed_string["results"])
-                print("COMPANY: " + COMPANY + " | page: " + str(start_index + 1))
-                start_index += 1
-                fail_counter = 0
-            else:
-                if response.status_code == 403 and fail_counter < 5:
-                    print(response.status_code)
-                    fail_counter += 1
-                    time.sleep(10)
-                else:
-                    break
-        sql_requests.set_cookies(COMPANY, str(cookies)) #Сохраняем обновленные куки в БД
+                    status = False
+            elif thing_page.status_code == 404:
+                status = False
+        finally:
+            return status
 
-    except requests.exceptions.ConnectTimeout as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.ReadTimeout as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.ConnectionError as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.HTTPError as err:
-        logging.error(u'' + str(err) + '')
-    finally:
-        for full_result in loaded_results:
+    def _get_thing_page(self, thing_id):
+        headers = sql_requests.get_headers(self._COMPANY)
+        cookies = sql_requests.get_cookies(self._COMPANY)
+        try:
+            req = self._THING_BY_ID_URL + str(thing_id) + "/ru"  # URL для API
+            print(req)
+            response = requests.get(req, headers=headers, cookies=cookies, timeout=config.get_timeout())
+            if response.status_code == 200:
+                cookies.update(dict(response.cookies))  # Обновляем куки
+                sql_requests.set_cookies(self._COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
+            return response
+        except requests.exceptions.ConnectTimeout as err:
+            logging.error(u'' + str(err) + '')
+        except requests.exceptions.ReadTimeout as err:
+            logging.error(u'' + str(err) + '')
+        except requests.exceptions.ConnectionError as err:
+            logging.error(u'' + str(err) + '')
+        except requests.exceptions.HTTPError as err:
+            logging.error(u'' + str(err) + '')
+
+    def get_thing_status_by_id(self, thing_id):
+        thing_page = self._get_thing_page(thing_id)
+        return self._get_thing_status_by_page(thing_page)
+
+    def _get_things_by_sale_page(self, response, old_things):
+        results = []
+        try:
+            parsed_string = json.loads(response.content.decode('utf-8'))
+            if not parsed_string["results"]:
+                return results
+        except ValueError as err:
+            logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
+            return results
+        products = parsed_string["results"]
+        for product in products:
             try:
-                code = full_result["articleCodes"][0]
-                price = full_result['whitePrice'].get('value', 0)
-                actual_price = full_result['redPrice'].get('value', 0)
-                name = full_result['name']
-                size = get_sizes(full_result['variantSizes'])
-                link = THING_URL + full_result['linkPdp']
+                code = product["articleCodes"][0]
+                price = product['whitePrice'].get('value', 0)
+                actual_price = product['redPrice'].get('value', 0)
+                name = product['name']
+                size = self._get_sizes(product['variantSizes'])
+                link = self._THING_URL + product['linkPdp']
                 if code not in old_things:
-                    status = get_thing_status_by_id(code)
+                    status = self.get_thing_status_by_id(code)
                     thing = [code, price, actual_price, name, size, link, status]
                 else:
                     thing = [code, price, actual_price, name, size, link, True]
                 results.append(thing)
             except ValueError as err:
-                logging.error(u'' + str(err) + ' Ошибка парсинга: '+full_result)
+                logging.error(u'' + str(err) + ' Ошибка парсинга: ' + product)
         return results
 
-def get_thing_status_by_id(thing_id):
-    headers = sql_requests.get_headers(COMPANY)
-    cookies = sql_requests.get_cookies(COMPANY)
-    status = True
-    try:
-        req = THING_BY_ID_URL + str(thing_id) + "/ru"  # URL для API
-        print(req)
-        response = requests.get(req, headers=headers, cookies=cookies, timeout=15.0)
-        if response.status_code == 200:
-            cookies.update(dict(response.cookies))  # Обновляем куки
-            sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
-            try:
-                parsed_string = json.loads(response.content.decode('utf-8'))
-                if parsed_string["product"].get("inStock", "False"):
-                    status = True
-                else:
-                    status = False
-            except KeyError as err:
-                logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
-                status = False
-        elif response.status_code == 404:
-            status = False
-    except requests.exceptions.ConnectTimeout as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.ReadTimeout as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.ConnectionError as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.HTTPError as err:
-        logging.error(u'' + str(err) + '')
-    finally:
-        return status
+    def _create_req(self, url, start_index):
+        req = url + str(start_index) + '&pageSize=' + str(self._PAGE_SIZE)
+        return req
 
-def get_sizes(sizes_list):
-    sizes = []
-    try:
-        for size in sizes_list:
-            sizes.append(size.get('filterCode', '-'))
-    finally:
-        return sizes
+    def _get_sizes(self, sizes_list):
+        sizes = []
+        try:
+            for size in sizes_list:
+                sizes.append(size.get('filterCode', '-'))
+        finally:
+            return sizes
 
+    def _increment_start_index(self, start_index):
+        return start_index + 1
 
-def get_HnM_loaded_results(type):
-    if type == 'men':
-        return get_things(MEN_URL)
-    elif type == 'woman':
-        return get_things(WOMAN_URL)
-    elif type == 'kids':
-        return get_things(KIDS_URL)
-    elif type == 'home':
-        return get_things(HOME_URL)
-    else:
-        print("Параметра " + str(type) + " не существует")
-        return 0
+    def _current_info(self, start_index):
+        print("COMPANY: " + self._COMPANY + " | page: " + str(start_index+1))
