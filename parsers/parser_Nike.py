@@ -1,173 +1,114 @@
-import requests
+from parsers import base_parser
+from bs4 import BeautifulSoup
 import json
 import logging
-import time
-import sql_requests
-from bs4 import BeautifulSoup
+from urllib.parse import unquote
 
-logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
-COMPANY = 'Nike'
-PAGE_SIZE = 1
+class ParserNike(base_parser.BaseParser):
+    def __init__(self):
+        super().__init__()
+        logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR,
+                            filename=u'log.txt')
+        self._PAGE_SIZE = 1
+        self._START_INDEX = 1
 
-WOMAN_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=женщины-распродажа/47Z7pt&pn='
-MEN_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=мужчины-распродажа/47Z7pu&pn='
-BOYS_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=мальчики-распродажа/47Z7pv&pn='
-GIRLS_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=-/47Z7pw&pn='
+        self._COMPANY = 'Nike'
+        self._WOMAN_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=женщины-распродажа/47Z7pt&pn='
+        self._MEN_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=мужчины-распродажа/47Z7pu&pn='
+        self._BOYS_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=мальчики-распродажа/47Z7pv&pn='
+        self._GIRLS_URL = 'https://store.nike.com/html-services/gridwallData?country=RU&lang_locale=ru_RU&gridwallPath=-/47Z7pw&pn='
 
+        self._types_dict = {
+            'woman': self._WOMAN_URL,
+            'men': self._MEN_URL,
+            'boys': self._BOYS_URL,
+            'girls': self._GIRLS_URL
+        }
 
-def get_things(url):
-    start_index = 1
-    fail_counter = 0
-    loaded_results = []
-    results = []
-    headers = sql_requests.get_headers(COMPANY)
-    cookies = sql_requests.get_cookies(COMPANY)
-    old_things = sql_requests.get_things(
-        COMPANY)  # Подгружаем записаные в БД вещи, чтоб подгружать размер только для новых вещей
-    try:
-        while True:
-            req = url + str(start_index)
-            response = requests.get(req, headers=headers, cookies=cookies)
-            if response.status_code == 200:
-                cookies.update(dict(response.cookies))  # Обновляем куки
-                try:
-                    parsed_string = json.loads(response.content.decode('utf-8'))
-                    if not parsed_string.get("sections"):
-                        break
-                except KeyError as err:
-                    logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
-                    break
-                loaded_results.extend(parsed_string['sections'][0]['products'])
-                print("COMPANY: " + COMPANY + " | page: " + str(start_index / PAGE_SIZE))
-                start_index += PAGE_SIZE
-                fail_counter = 0
-            else:
-                if response.status_code == 403 and fail_counter < 5:
-                    print(response.status_code)
-                    fail_counter += 1
-                    time.sleep(10)
+    def _get_thing_status_by_page(self, thing_page):
+        status = True
+        try:
+            if thing_page.status_code == 410:
+                status = False
+            elif thing_page.status_code == 200:
+                soup = BeautifulSoup(thing_page.content, "html.parser")
+                '''
+                Если отсутствует элемент "НЕТ В НАЛИЧИИ", то проверяется наличие элемента скидочной цены
+                '''
+                if not soup.find('div', {'class': 'exp-pdp-nostock-text'}):
+                    try:
+                        soup.find('span', {'class': 'exp-pdp-overridden-local-price'}).text
+                    except AttributeError:
+                        status = False
                 else:
-                    break
-        sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
+                    status = False
+        finally:
+            return status
 
-    except requests.exceptions.ConnectTimeout as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.ReadTimeout as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.ConnectionError as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.HTTPError as err:
-        logging.error(u'' + str(err) + '')
-    finally:
-        for full_result in loaded_results:
+    def _create_req(self, url, start_index):
+        req = url + str(start_index)
+        return req
+
+    def _get_things_by_sale_page(self, response, old_things):
+        results = []
+        try:
+            parsed_string = json.loads(response.content.decode('utf-8'))
+            if not parsed_string.get("sections"):
+                return results
+        except KeyError as err:
+            logging.error(u'' + str(err) + ' Ошибка парсинга JSON')
+            return results
+        products = parsed_string['sections'][0]['products']
+        for product in products:
             try:
-                code = get_thing_code(full_result['pdpUrl'])
-                price = format_price(full_result['overriddenLocalPrice'])
-                actual_price = format_price(full_result['overriddenEmployeePrice'])
-                name = full_result['subtitle'] + ' ' + full_result['title']
-                link = full_result['pdpUrl']
+                code = self._get_thing_code(product['pdpUrl'])
+                price = self._format_price(product['overriddenLocalPrice'])
+                actual_price = self._format_price(product['overriddenEmployeePrice'])
+                name = product['subtitle'] + ' ' + product['title']
+                link = unquote(product['pdpUrl'])
                 if code not in old_things:
-                    thing_page = get_thing_page(link)
-                    size = get_sizes_by_page(thing_page)
-                    status = get_thing_status_by_page(thing_page)
+                    thing_page = self._get_thing_page(link)
+                    size = self._get_sizes_by_page(thing_page)
+                    status = self._get_thing_status_by_page(thing_page)
                 else:
                     size = '-'
                     status = True
                 results.append([code, price, actual_price, name, size, link, status])
             except ValueError as err:
-                logging.error(u'' + str(err) + ' Ошибка парсинга: ' + full_result)
+                logging.error(u'' + str(err) + ' Ошибка парсинга: ' + product)
         return results
 
-
-def get_thing_page(link):
-    headers = sql_requests.get_headers(COMPANY)
-    cookies = sql_requests.get_cookies(COMPANY)
-    try:
-        print(link)
-        response = requests.get(link, headers=headers, cookies=cookies, timeout=15.0)
-        if response.status_code == 200:
-            cookies.update(dict(response.cookies))  # Обновляем куки
-            sql_requests.set_cookies(COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
-        return response
-    except requests.exceptions.ConnectTimeout as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.ReadTimeout as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.ConnectionError as err:
-        logging.error(u'' + str(err) + '')
-    except requests.exceptions.HTTPError as err:
-        logging.error(u'' + str(err) + '')
-
-
-def get_sizes_by_page(thing_page):
-    sizes = []
-    try:
-        if thing_page.status_code == 200:
-            try:
-                soup = BeautifulSoup(thing_page.content, "html.parser")
-                sizes_list = soup.find('select', {'name': 'skuAndSize'}).find_all('option')
-                for size in sizes_list:
-                    if not size.get('class'):
-                        sizes.append(format_size(size.text))
-            except AttributeError as err:
-                logging.error(u'' + str(err))
-    finally:
-        return sizes
-
-
-def get_thing_status_by_page(thing_page):
-    status = True
-    try:
-        if thing_page.status_code == 410:
-            status = False
-        elif thing_page.status_code == 200:
-            soup = BeautifulSoup(thing_page.content, "html.parser")
-            '''
-            Если отсутствует элемент "НЕТ В НАЛИЧИИ", то проверяется наличие элемента скидочной цены
-            '''
-            if not soup.find('div', {'class': 'exp-pdp-nostock-text'}):
+    def _get_sizes_by_page(self, thing_page):
+        sizes = []
+        try:
+            if thing_page.status_code == 200:
                 try:
-                    soup.find('span', {'class': 'exp-pdp-overridden-local-price'}).text
-                except AttributeError:
-                    status = False
-            else:
-                status = False
-    finally:
-        return status
+                    soup = BeautifulSoup(thing_page.content, "html.parser")
+                    sizes_list = soup.find('select', {'name': 'skuAndSize'}).find_all('option')
+                    for size in sizes_list:
+                        if not size.get('class'):
+                            sizes.append(format_size(size.text))
+                except AttributeError as err:
+                    logging.error(u'' + str(err))
+        finally:
+            return sizes
 
+    def _format_price(self, price):
+        result = []
+        try:
+            for char in price:
+                if char.isdigit():
+                    result.append(char)
+            return ''.join(result)
+        except:
+            return ''
 
-def get_thing_code(link):
-    return link[link.rfind('pid'):]
+    def _format_size(self, size):
+        return size.replace('\n', '').replace('\t', '')
 
+    def _get_thing_code(self, link):
+        return link[link.rfind('pid'):]
 
-def format_price(price):
-    result = []
-    try:
-        for char in price:
-            if char.isdigit():
-                result.append(char)
-        return ''.join(result)
-    except:
-        return ''
-
-
-def format_size(size):
-    return size.replace('\n', '').replace('\t', '').replace(' ', '')
-
-
-def get_thing_status_by_id(thing_id):
-    thing_page = get_thing_page(sql_requests.get_link_by_id(thing_id))
-    return get_thing_status_by_page(thing_page)
-
-def get_Nike_loaded_results(type):
-    if type == 'men':
-        return get_things(MEN_URL)
-    elif type == 'woman':
-        return get_things(WOMAN_URL)
-    elif type == 'boys':
-        return get_things(BOYS_URL)
-    elif type == 'girls':
-        return get_things(GIRLS_URL)
-    else:
-        print("Параметра " + str(type) + " не существует")
-        return 0
+    # Метод служит для вывода на экран текущей страницы, компании, типа вещей
+    def _current_info(self, start_index):
+        print("COMPANY: " + self._COMPANY + " | page: " + str(start_index))
