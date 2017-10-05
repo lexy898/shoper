@@ -14,6 +14,7 @@ companies_dict = {
     'Adidas': parser_Adidas.ParserAdidas(),
     'Nike': parser_Nike.ParserNike()
 }
+
 def things_update(type, company):
     old_things = sql_requests.get_things(company)
     loaded_things = []

@@ -1,20 +1,38 @@
 import configparser
 import os
+import logging
+
+logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.ERROR, filename=u'log.txt')
 
 conf = configparser.RawConfigParser()
 conf.read(str(os.getcwd())+"/config.properties")
 
 def get_token():
-    return conf.get("telegramBot", "token")
+    try:
+        return conf.get("telegramBot", "token")
+    except configparser.NoSectionError as err:
+        logging.error(u'' + str(err) + '')
 
 def get_update_status(company):
-    return conf.get("update", company)
+    try:
+        return conf.get("update", company)
+    except configparser.NoSectionError as err:
+        logging.error(u'' + str(err) + '')
 
 def get_days_actualization():
-    return conf.get("daysActualization", "days")
+    try:
+        return conf.get("daysActualization", "days")
+    except configparser.NoSectionError as err:
+        logging.error(u'' + str(err) + '')
 
 def get_notify_status(company):
-    return conf.get("notify", company)
+    try:
+        return conf.get("notify", company)
+    except configparser.NoSectionError as err:
+        logging.error(u'' + str(err) + '')
 
 def get_timeout():
-    return float(conf.get("timeout", "timeout"))
+    try:
+        return float(conf.get("timeout", "timeout"))
+    except configparser.NoSectionError as err:
+        logging.error(u'' + str(err) + '')
