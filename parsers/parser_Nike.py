@@ -104,7 +104,7 @@ class ParserNike(base_parser.BaseParser):
             return ''
 
     def _format_size(self, size):
-        return size.replace('\n', '').replace('\t', '')
+        return size.replace('\n', '').replace('\t', '').replace(' ', '')
 
     def _get_thing_code(self, link):
         return link[link.rfind('pid'):]
