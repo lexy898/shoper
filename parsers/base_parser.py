@@ -31,13 +31,13 @@ class BaseParser:
                 sql_requests.set_cookies(self._COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
             return response
         except requests.exceptions.ConnectTimeout as err:
-            logging.error(u'' + str(err) + '')
+            logging.error(u'' + str(err) + '' + str(self.__class__))
         except requests.exceptions.ReadTimeout as err:
-            logging.error(u'' + str(err) + '')
+            logging.error(u'' + str(err) + '' + str(self.__class__))
         except requests.exceptions.ConnectionError as err:
-            logging.error(u'' + str(err) + '')
+            logging.error(u'' + str(err) + '' + str(self.__class__))
         except requests.exceptions.HTTPError as err:
-            logging.error(u'' + str(err) + '')
+            logging.error(u'' + str(err) + '' + str(self.__class__))
 
     def get_thing_status_by_id(self, thing_id):
         thing_page = self._get_thing_page(sql_requests.get_link_by_id(thing_id))
@@ -68,13 +68,13 @@ class BaseParser:
                 sql_requests.set_cookies(self._COMPANY, str(cookies))  # Сохраняем обновленные куки в БД
                 start_index = self._increment_start_index(start_index)
         except requests.exceptions.ConnectTimeout as err:
-            logging.error(u'' + str(err) + '')
+            logging.error(u'' + str(err) + '' + str(self.__class__))
         except requests.exceptions.ReadTimeout as err:
-            logging.error(u'' + str(err) + '')
+            logging.error(u'' + str(err) + '' + str(self.__class__))
         except requests.exceptions.ConnectionError as err:
-            logging.error(u'' + str(err) + '')
+            logging.error(u'' + str(err) + '' + str(self.__class__))
         except requests.exceptions.HTTPError as err:
-            logging.error(u'' + str(err) + '')
+            logging.error(u'' + str(err) + '' + str(self.__class__))
         finally:
             print("Вещей загружено: " + str(len(results)))
             return results

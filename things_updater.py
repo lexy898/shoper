@@ -51,7 +51,7 @@ def things_update(type, company):
             try:
                 new_things.remove(new_thing)
             except ValueError as err:
-                logging.error(u'' + str(err) + '')
+                logging.error(u'' + str(err) + '' )
     return new_things
 
 
