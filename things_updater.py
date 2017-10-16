@@ -46,6 +46,7 @@ def things_update(type, company):
     Убираем из new_things все неактуальные вещи
     '''
     for new_thing in new_things:
+        # Если статус равен False, то вещь удаляется из списка
         if not new_thing[6]:
             try:
                 new_things.remove(new_thing)
@@ -72,8 +73,11 @@ for brand in brands:
         write_protocol('******* COMPANY: ' + brand + ' | time: ' + str(datetime.now()) + ' *******\n')
         types = sql_requests.get_types_of_good_by_company(brand)
         for type in types:
-            write_protocol('******* type: ' + type + '\n')
-            new_things = things_update(type, brand)
-            if config.get_notify_status(brand) == 'True':
-                notify(new_things, type, brand)
-            write_protocol('______________________________________\n\n')
+            try:
+                write_protocol('******* type: ' + type + '\n')
+                new_things = things_update(type, brand)
+                if config.get_notify_status(brand) == 'True':
+                    notify(new_things, type, brand)
+                write_protocol('______________________________________\n\n')
+            except:
+                continue
