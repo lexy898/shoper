@@ -25,6 +25,9 @@ class ParserSantocha(base_parser.BaseParser):
                     'data-standardprice').replace("-", "0")
                 actual_price = product.find('div', {'class': 'pricinginitial'}).find('div').find('div').get(
                     'data-salesprice').replace("-", "0")
+                if price == "0":
+                    print("Исключен " + str(code))
+                    continue
                 name = product.find('div', {'class': 'name'}).find('a').text
                 link = product.find('div', {'class': 'name'}).find('a').get('href')
                 if code not in old_things:
